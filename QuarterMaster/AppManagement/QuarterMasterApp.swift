@@ -12,7 +12,7 @@ import SwiftData
 struct QuarterMasterApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            QuarterlyInput.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
