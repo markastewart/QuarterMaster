@@ -1,5 +1,5 @@
 //
-//  TaxCategory.swift
+//  EstimateValues.swift
 //  QuarterMaster
 //
 //  Created by Mark A Stewart on 6/15/26.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TaxCategory: String, CaseIterable {
+enum EstimateValues: String, CaseIterable {
     case pensionAnnuities = "Pensions & Annuities"
     case socialSecurity = "Social Security Benefits"
     case interest = "Interest"

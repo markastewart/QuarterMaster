@@ -28,7 +28,7 @@ struct CSVImportService {
             let rawValue = parts[1].replacingOccurrences(of: "\"", with: "")
             
                 // Match label against valid label enum
-            if let category = TaxCategory.allCases.first(where: {
+            if let category = EstimateValues.allCases.first(where: {
                 $0.rawValue.caseInsensitiveCompare(rawLabel) == .orderedSame
             }) {
                     // Sanitize numeric value; remove '$', ',', and whitespace
