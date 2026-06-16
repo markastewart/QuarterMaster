@@ -15,6 +15,7 @@ struct QuarterMasterApp: App {
             QuarterlyInput.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        print("SwiftData Database Location: \(modelConfiguration.url.path)")
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
