@@ -13,6 +13,7 @@ enum EstimateValues: String, CaseIterable {
     case interest = "Interest"
     case oilRoyalties = "Oil Royalties"
     case drugTrialCompensation = "Drug Trial Compensation"
+    case pollWorker = "Poll Worker"
     case ordinaryDividends = "Ordinary Dividends"
     case qualifiedDividends = "Qualified Dividends"
     case qualifiedEligibleDividends = "Qualified Eligible Dividends"
@@ -34,6 +35,7 @@ enum EstimateValues: String, CaseIterable {
         case .interest: return \.interest
         case .oilRoyalties: return \.oilRoyalties
         case .drugTrialCompensation: return \.drugTrialCompensation
+        case .pollWorker: return \.pollWorker
         case .ordinaryDividends: return \.ordinaryDividends
         case .qualifiedDividends: return \.qualifiedDividends
         case .qualifiedEligibleDividends: return \.qualifiedEligibleDividends

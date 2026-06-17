@@ -16,6 +16,8 @@ final class QuarterlyInput {
     var interest: Double = 0.0
     var oilRoyalties: Double = 0.0
     var drugTrialCompensation: Double = 0.0
+    var pollWorker: Double = 0.0
+    var otherIncome: Double = 0.0
     var ordinaryDividends: Double = 0.0
     var qualifiedDividends: Double = 0.0
     var qualifiedEligibleDividends: Double = 0.0
@@ -23,7 +25,6 @@ final class QuarterlyInput {
     var shortTermCG: Double = 0.0
     var shortTermGain: Double = 0.0
     var longTermGain: Double = 0.0
-    var cashDonations: Double = 0.0
     var fedCYWitholding: Double = 0.0
     var fedCYEstimates: Double = 0.0
     var stateCYWitholding: Double = 0.0
