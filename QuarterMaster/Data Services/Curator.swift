@@ -9,7 +9,19 @@ import Foundation
 
 struct DataCurator {
 
-    static func curateData(record: QuarterlyInput) {
+    static func curateData(quarterlyRecord: QuarterlyInput) {
         
+            // Aggregate other income parts to a single value for other income.
+        let otherIncomeFields: [EstimateValues] = [.oilRoyalties, .drugTrialCompensation, .pollWorker]
+        
+        var calculatedOtherIncome = 00.0
+        for field in otherIncomeFields {
+            calculatedOtherIncome = calculatedOtherIncome + quarterlyRecord[keyPath: field.keyPath]
+            print("Processing \(field.rawValue): \(calculatedOtherIncome)")
+        }
+        quarterlyRecord.otherIncome = calculatedOtherIncome
+        
+            // Apply factor to estimate Qualified Dividends from Qualified Eligible Dividends.
+        quarterlyRecord.qualifiedDividends = quarterlyRecord.qualifiedEligibleDividends * SeasonalConstants.qualifiedDividendsFactor
     }
 }

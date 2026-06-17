@@ -39,9 +39,9 @@ class DashboardVM {
             // With an input record for quarter, post process the inputs and calculate tax estimate.
         if let quarterlyRec = quarterlyRecord {
             
-            DataCurator.curateData(record: quarterlyRec)
+            DataCurator.curateData(quarterlyRecord: quarterlyRec)
             
-            TaxCalculator.calculate(record: quarterlyRec)
+            TaxCalculator.calculate(quarterlyRecord: quarterlyRec)
         }
         try? context.save()
     }

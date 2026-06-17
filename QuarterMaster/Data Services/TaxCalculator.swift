@@ -9,7 +9,7 @@ import Foundation
 
 struct TaxCalculator {
 
-    static func calculate(record: QuarterlyInput) {
+    static func calculate(quarterlyRecord: QuarterlyInput) {
         
     }
 }
