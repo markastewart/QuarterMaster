@@ -12,6 +12,7 @@ import SwiftData
 final class TaxEstimate {
     var quarterID: String = ""
     var taxEntity: String = ""
+    var taxableSocialSecurity = 0.0
     var adjustedGrossIncome : Double = 0.0
     var totalTax : Double = 0.0
     var taxesPaid: Double = 0.0

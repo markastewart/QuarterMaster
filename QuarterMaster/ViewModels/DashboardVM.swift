@@ -36,12 +36,15 @@ class DashboardVM {
             case .failure(let error):
                 print("Import failed: \(error.localizedDescription)")
         }
+        
             // With an input record for quarter, post process the inputs and calculate tax estimate.
         if let quarterlyRec = quarterlyRecord {
             
             DataCurator.curateData(quarterlyRecord: quarterlyRec)
             
-            TaxCalculator.calculate(quarterlyRecord: quarterlyRec)
+            FederalTaxCalculator.calculateFederalEstimate(quarterlyRecord: quarterlyRec)
+            
+            StateTaxCalculator.calculateStateEstimate(quarterlyRecord: quarterlyRec)
         }
         try? context.save()
     }
