@@ -9,5 +9,36 @@ import Foundation
 
 struct SeasonalConstants {
     
-    static let qualifiedDividendsFactor = 0.57  // Use historical data relating ordinary dividends to qualified dividends.
+    static let qualifiedDividendsFactor = 0.56  // Use historical data relating ordinary dividends to qualified dividends.
+    static let standardDeduction = 34700
+    
+    struct TaxBracket {
+        let rate: Double
+        let minIncome: Double
+        let maxIncome: Double?
+        
+        func contains(_ income: Double) -> Bool {
+            if let max = maxIncome {
+                return income >= minIncome && income <= max
+            }
+            return income >= minIncome
+        }
+    }
+    
+    struct TaxTable2025 {
+        static let mfjBrackets: [TaxBracket] = [
+            TaxBracket(rate: 0.10, minIncome: 0, maxIncome: 23850),
+            TaxBracket(rate: 0.12, minIncome: 23851, maxIncome: 96950),
+            TaxBracket(rate: 0.22, minIncome: 96951, maxIncome: 206700),
+            TaxBracket(rate: 0.24, minIncome: 206701, maxIncome: 394600),
+            TaxBracket(rate: 0.32, minIncome: 394601, maxIncome: 501050),
+            TaxBracket(rate: 0.35, minIncome: 501051, maxIncome: 751600),
+            TaxBracket(rate: 0.37, minIncome: 751601, maxIncome: nil)
+        ]
+            // Helper to retrieve marginal tax rate. If income above maxIncomes, defaults to final (highest) bracket.
+        static func getMarginalRate(for income: Double) -> Double {
+            let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
+            return bracket.rate
+        }
+    }
 }
