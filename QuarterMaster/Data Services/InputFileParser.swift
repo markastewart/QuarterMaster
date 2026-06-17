@@ -33,11 +33,13 @@ struct CSVImportService {
             }) {
                     // Sanitize numeric value; remove '$', ',', and whitespace
                 let cleanedValue = rawValue.replacingOccurrences(of: "[$, ]", with: "", options: .regularExpression)
+                print("\(cleanedValue)")
                 
                     // Convert to Double and Save via KeyPath
                 if let doubleValue = Double(cleanedValue) {
                     print("\(rawLabel),\(doubleValue)")
                     quarterRecord[keyPath: category.keyPath] = doubleValue
+                    print("value: \(doubleValue), record val: \(quarterRecord[keyPath: category.keyPath])")
                 } else {
                     print("Could not convert value '\(rawValue)' to Double for \(rawLabel)")
                 }

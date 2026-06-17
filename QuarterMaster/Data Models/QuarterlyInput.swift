@@ -18,9 +18,9 @@ final class QuarterlyInput {
     var drugTrialCompensation: Double = 0.0
     var ordinaryDividends: Double = 0.0
     var qualifiedDividends: Double = 0.0
+    var qualifiedEligibleDividends: Double = 0.0
     var iraDistributions: Double = 0.0
     var shortTermCG: Double = 0.0
-    var longTermCG: Double = 0.0
     var shortTermGain: Double = 0.0
     var longTermGain: Double = 0.0
     var cashDonations: Double = 0.0

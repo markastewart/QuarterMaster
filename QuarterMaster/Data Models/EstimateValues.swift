@@ -15,15 +15,15 @@ enum EstimateValues: String, CaseIterable {
     case drugTrialCompensation = "Drug Trial Compensation"
     case ordinaryDividends = "Ordinary Dividends"
     case qualifiedDividends = "Qualified Dividends"
+    case qualifiedEligibleDividends = "Qualified Eligible Dividends"
     case iraDistributions = "IRA Distributions"
     case shortTermCG = "Short Term Capital Gain"
-    case longTermCG = "Long Term Capital Gain"
     case shortTermGain = "Short Term Gain"
     case longTermGain = "Long Term Gain"
-    case fedCYWitholding = " Federal Income Tax - CY Witholding"
-    case fedCYEstimates = " Federal Income Tax - CY Estimates"
+    case fedCYWitholding = "Federal Income Tax - CY Witholding"
+    case fedCYEstimates = "Federal Income Tax - CY Estimated"
     case stateCYWitholding = "State Income Tax - CY Witholding"
-    case stateCYEstimates = "State Income Tax - CY Estimates"
+    case stateCYEstimates = "State Income Tax - CY Estimated"
 
 
         // Maps the Enum case to the actual property in your SwiftData model
@@ -36,9 +36,9 @@ enum EstimateValues: String, CaseIterable {
         case .drugTrialCompensation: return \.drugTrialCompensation
         case .ordinaryDividends: return \.ordinaryDividends
         case .qualifiedDividends: return \.qualifiedDividends
+        case .qualifiedEligibleDividends: return \.qualifiedEligibleDividends
         case .iraDistributions: return \.iraDistributions
         case .shortTermCG: return \.shortTermCG
-        case .longTermCG: return \.longTermCG
         case .shortTermGain: return \.shortTermGain
         case .longTermGain: return \.longTermGain
         case .fedCYWitholding: return \.fedCYWitholding
