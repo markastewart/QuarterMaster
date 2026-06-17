@@ -36,9 +36,7 @@ struct CSVImportService {
                 
                     // Convert to Double and Save via KeyPath
                 if let doubleValue = Double(cleanedValue) {
-                    print("\(rawLabel),\(doubleValue)")
                     quarterlyRecord[keyPath: category.keyPath] = doubleValue
-                    print("value: \(doubleValue), record val: \(quarterlyRecord[keyPath: category.keyPath])")
                 } else {
                     print("Could not convert value '\(rawValue)' to Double for \(rawLabel)")
                 }

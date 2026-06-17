@@ -17,7 +17,6 @@ struct DataCurator {
         var calculatedOtherIncome = 00.0
         for field in otherIncomeFields {
             calculatedOtherIncome = calculatedOtherIncome + quarterlyRecord[keyPath: field.keyPath]
-            print("Processing \(field.rawValue): \(calculatedOtherIncome)")
         }
         quarterlyRecord.otherIncome = calculatedOtherIncome
         

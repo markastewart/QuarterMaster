@@ -46,15 +46,17 @@ extension QuarterlyInput {
         
         do {
             if let existing = try context.fetch(descriptor).first {
-                return existing
+                context.delete(existing)
+                try? context.save()
             }
         } catch {
-            print("Fetch failed, creating new record.")
+            print("Fetch failed: \(error)")
         }
-            // Create new if none found
+        
         let newRecord = QuarterlyInput()
         newRecord.quarterID = quarterID
         context.insert(newRecord)
+        
         return newRecord
     }
 }
