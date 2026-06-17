@@ -10,8 +10,8 @@ import SwiftData
 
 struct CSVImportService {
         
-    static func processCSV(content: String, context: ModelContext, selectedQuarter: Quarter) {
-        var quarterRecord = QuarterlyInput.getRecord(for: selectedQuarter.rawValue, in: context)
+    static func processCSV(content: String, context: ModelContext, quarter: Quarter) -> QuarterlyInput {
+        var quarterlyRecord = QuarterlyInput.getRecord(for: quarter.rawValue, in: context)
         
             // Parse input file: split into lines, then by quote-comma-quote (ignoring internal value commas).
         let rows = content.components(separatedBy: .newlines)
@@ -33,18 +33,19 @@ struct CSVImportService {
             }) {
                     // Sanitize numeric value; remove '$', ',', and whitespace
                 let cleanedValue = rawValue.replacingOccurrences(of: "[$, ]", with: "", options: .regularExpression)
-                print("\(cleanedValue)")
                 
                     // Convert to Double and Save via KeyPath
                 if let doubleValue = Double(cleanedValue) {
                     print("\(rawLabel),\(doubleValue)")
-                    quarterRecord[keyPath: category.keyPath] = doubleValue
-                    print("value: \(doubleValue), record val: \(quarterRecord[keyPath: category.keyPath])")
+                    quarterlyRecord[keyPath: category.keyPath] = doubleValue
+                    print("value: \(doubleValue), record val: \(quarterlyRecord[keyPath: category.keyPath])")
                 } else {
                     print("Could not convert value '\(rawValue)' to Double for \(rawLabel)")
                 }
             }
         }
         try? context.save()
+        
+        return quarterlyRecord
     }
 }

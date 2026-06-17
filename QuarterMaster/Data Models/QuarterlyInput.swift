@@ -30,9 +30,11 @@ final class QuarterlyInput {
     var stateCYWitholding: Double = 0.0
     var stateCYEstimates: Double = 0.0
     
+    @Relationship(deleteRule: .cascade, inverse: \TaxEstimate.quarterlyInput)
+    var taxEstimates: [TaxEstimate] = []
+    
     
     init() {
-        
     }
 }
 

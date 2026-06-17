@@ -13,34 +13,34 @@ struct Dashboard: View {
     @Environment(\.modelContext) private var modelContext
     @State private var isImporting = false
     @State private var selectedQuarter: Quarter = .first
+    @State private var viewModel: DashboardVM?
     
     var body: some View {
-        Picker("Select Quarter", selection: $selectedQuarter) {
+        VStack {
+            if let vm = viewModel {
+                Picker("Select Quarter", selection: $selectedQuarter) {
                     ForEach(Quarter.allCases) { quarter in
                         Text(quarter.rawValue).tag(quarter)
                     }
                 }
                 .pickerStyle(.segmented) // Looks great for quarters
                 .padding()
-        
-        Button("Import CSV") {
-            isImporting = true
+                
+                Button("Import CSV") {
+                    isImporting = true
+                }
+                .fileImporter(
+                    isPresented: $isImporting,
+                    allowedContentTypes: [.commaSeparatedText],
+                    allowsMultipleSelection: false
+                ) { result in
+                    vm.generateQuarterlyEstimate(for: selectedQuarter, result: result, context: modelContext)
+                }
+            }
         }
-        .fileImporter(
-            isPresented: $isImporting,
-            allowedContentTypes: [.commaSeparatedText],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-                case .success(let urls):
-                    guard let url = urls.first, url.startAccessingSecurityScopedResource() else { return }
-                    defer { url.stopAccessingSecurityScopedResource() }
-                    
-                    if let content = try? String(contentsOf: url, encoding: .utf8) {
-                        CSVImportService.processCSV(content: content, context: modelContext, selectedQuarter: selectedQuarter)
-                    }
-                case .failure(let error):
-                    print("Import failed: \(error.localizedDescription)")
+        .onAppear {
+            if viewModel == nil {
+                viewModel = DashboardVM(modelContext: modelContext)
             }
         }
     }
