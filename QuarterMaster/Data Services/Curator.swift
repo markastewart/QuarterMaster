@@ -28,5 +28,11 @@ struct DataCurator {
         
             // Add Reinvest Long-term CG to Capital Gain Distribution
         quarterlyRecord.capitalGainDistribution += quarterlyRecord.reinvestLTCG
+        
+            // Remove leading negative sign from Federal and State witholdings and estimates.
+        quarterlyRecord.fedCYEstimates = quarterlyRecord.fedCYEstimates * -1
+        quarterlyRecord.stateCYEstimates = quarterlyRecord.stateCYEstimates * -1
+        quarterlyRecord.fedCYWitholding = quarterlyRecord.fedCYWitholding * -1
+        quarterlyRecord.stateCYWitholding = quarterlyRecord.stateCYWitholding * -1
     }
 }

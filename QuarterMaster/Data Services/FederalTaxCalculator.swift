@@ -41,7 +41,7 @@ struct FederalTaxCalculator {
         
         fedEstimate.taxableIncome = fedEstimate.adjustedGrossIncome - fedEstimate.totalDeductions
         
-        fedEstimate.totalTax = annualTaxCalc(quarterlyRecord: quarterlyRecord) - SeasonalConstants.foreignTaxPaid
+        fedEstimate.totalTax = annualTaxCalc(quarterlyRec: quarterlyRecord, fedEstimate: fedEstimate) - SeasonalConstants.foreignTaxPaid
         
         fedEstimate.taxesPaid = quarterlyRecord.fedCYWitholding + quarterlyRecord.fedCYEstimates
         
@@ -81,13 +81,40 @@ struct FederalTaxCalculator {
         let excess = fedEstimate.adjustedGrossIncome - SeasonalConstants.enhancedDeductionThreshold
         let reduction = excess * 0.06
         let additionalDeduction = SeasonalConstants.maxEnhancedDeduction - reduction
-            // If additional deduction, multiple by 2 for MFJ
+            // If additional deduction available, multiple by 2 for MFJ
         fedEstimate.additionalDeductions = additionalDeduction < 0 ? 0 : additionalDeduction * 2
     }
     
     
-    static func annualTaxCalc(quarterlyRecord: QuarterlyInput) -> Double {
+    static func annualTaxCalc(quarterlyRec: QuarterlyInput, fedEstimate: TaxEstimate) -> Double {
         
-        return 0.0
+        let taxableGains = quarterlyRec.qualifiedDividends + quarterlyRec.capitalGainDistribution + quarterlyRec.longTermGain
+        
+        let ordinaryIncome = fedEstimate.taxableIncome - taxableGains
+        
+        let taxOnGains = taxableGains * 0.15
+        
+        let taxOnOrdinary = calculateTaxFromTables(taxableIncome: ordinaryIncome)
+        
+        return taxOnGains + taxOnOrdinary
+    }
+    
+    
+    static func calculateTaxFromTables (taxableIncome: Double) -> Double {
+        var totalTax = 0.0
+        
+        for taxTableRecord in SeasonalConstants.IRSTaxTable2025.mfjBrackets {
+            
+                // Loop through brackets preceding the bracket for the taxableIncome
+            if taxTableRecord.maxIncome! < taxableIncome {
+                totalTax += (taxTableRecord.maxIncome! - taxTableRecord.minIncome) * taxTableRecord.rate
+            }
+                // This is the bracket for the income
+            else {
+                totalTax += (taxableIncome - taxTableRecord.minIncome) * taxTableRecord.rate
+                break
+            }
+        }
+        return totalTax
     }
 }
