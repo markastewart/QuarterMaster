@@ -20,7 +20,11 @@ struct DataCurator {
         }
         quarterlyRecord.otherIncome = calculatedOtherIncome
         
-            // Apply factor to estimate Qualified Dividends from Qualified Eligible Dividends.
+            // Apply factor to estimate Qualified Dividends from Qualified Eligible Dividends. Add 
         quarterlyRecord.qualifiedDividends = quarterlyRecord.qualifiedEligibleDividends * SeasonalConstants.qualifiedDividendsFactor
+        
+            // Add Qualified Eligible Dividends and Short Term Capital Gain to Ordinary Dividends as that will be what's used for tax calc.
+        let additionalOrdinaryDividends = quarterlyRecord.qualifiedEligibleDividends + quarterlyRecord.shortTermCG
+        quarterlyRecord.ordinaryDividends += additionalOrdinaryDividends
     }
 }

@@ -29,11 +29,12 @@ struct FederalTaxCalculator {
         let additionalIncome = quarterlyRecord.otherIncome
         
             // Calculate federal AGI
-        let quarterlyAdjustedGrossIncome = taxableInterest + ordinaryDividends + iraDistributions + pensionAnnuities + fedEstimate.taxableSocialSecurity + fedEstimate.taxableCapitalGains + additionalIncome
+        let quarterlyAdjustedGrossIncome = taxableInterest + ordinaryDividends + iraDistributions + pensionAnnuities + fedEstimate.taxableCapitalGains + additionalIncome
         
-        fedEstimate.adjustedGrossIncome = quarterlyAdjustedGrossIncome * Quarter.factor(for: quarterlyRecord.quarterID)
+            // Social security is already annualized so add it to remainder of annualized AGI.
+        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * Quarter.factor(for: quarterlyRecord.quarterID)) + fedEstimate.taxableSocialSecurity
         
-        additionalDeductionsCalc(quarterlyRecord: quarterlyRecord)
+        additionalDeductionsCalc(quarterlyRecord: quarterlyRecord, fedEstimate: fedEstimate)
         
             // Calculate total deductions and taxable income
         fedEstimate.totalDeductions = Double (SeasonalConstants.standardDeduction) + fedEstimate.additionalDeductions
@@ -48,9 +49,25 @@ struct FederalTaxCalculator {
     }
     
     
+        // taxableSocialSecurityCalc - Calculate taxable social security for estimate.
     static func taxableSocialSecurityCalc(fedEstimate: TaxEstimate, quarterlyRecord: QuarterlyInput) {
 
-        fedEstimate.taxableSocialSecurity = 123
+        // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
+        
+        let annualizedAGI = (quarterlyRecord.pensionAnnuities + quarterlyRecord.ordinaryDividends + quarterlyRecord.otherIncome + quarterlyRecord.interest) * Quarter.factor(for: fedEstimate.quarterID)
+        
+        let annualizedSocialSecurity = quarterlyRecord.socialSecurity * Quarter.factor(for: fedEstimate.quarterID)
+        
+        if Int (annualizedAGI) > SeasonalConstants.ssMaxThreshold {
+            fedEstimate.taxableSocialSecurity = annualizedSocialSecurity * 0.85
+            
+        }
+        else if Int (annualizedAGI) < SeasonalConstants.ssMinThreshold {
+            fedEstimate.taxableSocialSecurity = 0
+        }
+        else {
+            fedEstimate.taxableSocialSecurity = annualizedSocialSecurity * 0.50
+        }
     }
     
     
@@ -58,8 +75,12 @@ struct FederalTaxCalculator {
         
     }
     
-    static func additionalDeductionsCalc(quarterlyRecord: QuarterlyInput) {
+    static func additionalDeductionsCalc(quarterlyRecord: QuarterlyInput, fedEstimate: TaxEstimate) {
         
+        let excess = fedEstimate.adjustedGrossIncome - SeasonalConstants.enhancedDeductionThreshold
+        let reduction = excess * 0.06
+        let additionalDeduction = SeasonalConstants.maxEnhancedDeduction - reduction
+        fedEstimate.additionalDeductions = additionalDeduction < 0 ? 0 : additionalDeduction
     }
     
     
