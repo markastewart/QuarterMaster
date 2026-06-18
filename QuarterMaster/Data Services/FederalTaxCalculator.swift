@@ -45,7 +45,10 @@ struct FederalTaxCalculator {
         
         fedEstimate.taxesPaid = quarterlyRecord.fedCYWitholding + quarterlyRecord.fedCYEstimates
         
-        fedEstimate.taxEstimate = fedEstimate.totalTax - fedEstimate.taxesPaid
+            // Proprate tax due pay YTD
+        let prorateTaxDue = (fedEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.quarterID))) - fedEstimate.taxesPaid
+        
+        fedEstimate.taxEstimate = prorateTaxDue
     }
     
     
