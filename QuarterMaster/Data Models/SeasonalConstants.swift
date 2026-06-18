@@ -13,7 +13,7 @@ struct SeasonalConstants {
     static let standardDeduction = 34700
     static let ssMaxThreshold = 44000
     static let ssMinThreshold = 32000
-    static let maxEnhancedDeduction = 12000.0
+    static let maxEnhancedDeduction = 6000.0
     static let enhancedDeductionThreshold = 150000.0
     
     struct TaxBracket {

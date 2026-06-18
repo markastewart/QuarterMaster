@@ -24,7 +24,7 @@ struct FederalTaxCalculator {
         taxableSocialSecurityCalc(fedEstimate: fedEstimate, quarterlyRecord: quarterlyRecord)
         
             // Calculate Taxable Capital Gains
-        taxableCapitalGainsCalc(quarterlyRecord: quarterlyRecord)
+        taxableCapitalGainsCalc(quarterlyRecord: quarterlyRecord, fedEstimate: fedEstimate)
         
         let additionalIncome = quarterlyRecord.otherIncome
         
@@ -34,7 +34,7 @@ struct FederalTaxCalculator {
             // Social security is already annualized so add it to remainder of annualized AGI.
         fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * Quarter.factor(for: quarterlyRecord.quarterID)) + fedEstimate.taxableSocialSecurity
         
-        additionalDeductionsCalc(quarterlyRecord: quarterlyRecord, fedEstimate: fedEstimate)
+        additionalDeductionsCalc(fedEstimate: fedEstimate)
         
             // Calculate total deductions and taxable income
         fedEstimate.totalDeductions = Double (SeasonalConstants.standardDeduction) + fedEstimate.additionalDeductions
@@ -71,16 +71,18 @@ struct FederalTaxCalculator {
     }
     
     
-    static func taxableCapitalGainsCalc(quarterlyRecord: QuarterlyInput) {
+    static func taxableCapitalGainsCalc(quarterlyRecord: QuarterlyInput, fedEstimate: TaxEstimate) {
         
+        fedEstimate.taxableCapitalGains = quarterlyRecord.shortTermCG + quarterlyRecord.longTermGain + quarterlyRecord.capitalGainDistribution
     }
     
-    static func additionalDeductionsCalc(quarterlyRecord: QuarterlyInput, fedEstimate: TaxEstimate) {
+    static func additionalDeductionsCalc(fedEstimate: TaxEstimate) {
         
         let excess = fedEstimate.adjustedGrossIncome - SeasonalConstants.enhancedDeductionThreshold
         let reduction = excess * 0.06
         let additionalDeduction = SeasonalConstants.maxEnhancedDeduction - reduction
-        fedEstimate.additionalDeductions = additionalDeduction < 0 ? 0 : additionalDeduction
+            // If additional deduction, multiple by 2 for MFJ
+        fedEstimate.additionalDeductions = additionalDeduction < 0 ? 0 : additionalDeduction * 2
     }
     
     

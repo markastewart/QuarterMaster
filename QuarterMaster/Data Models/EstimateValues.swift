@@ -21,6 +21,7 @@ enum EstimateValues: String, CaseIterable {
     case shortTermCG = "Short Term Capital Gain"
     case shortTermGain = "Short Term Gain"
     case longTermGain = "Long Term Gain"
+    case capitalGainDistribution = "Capital Gain Distribution"
     case fedCYWitholding = "Federal Income Tax - CY Witholding"
     case fedCYEstimates = "Federal Income Tax - CY Estimated"
     case stateCYWitholding = "State Income Tax - CY Witholding"
@@ -43,6 +44,7 @@ enum EstimateValues: String, CaseIterable {
         case .shortTermCG: return \.shortTermCG
         case .shortTermGain: return \.shortTermGain
         case .longTermGain: return \.longTermGain
+        case .capitalGainDistribution: return \.capitalGainDistribution
         case .fedCYWitholding: return \.fedCYWitholding
         case .fedCYEstimates: return \.fedCYEstimates
         case .stateCYWitholding: return \.stateCYWitholding

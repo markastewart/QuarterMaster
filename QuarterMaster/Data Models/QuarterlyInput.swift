@@ -25,6 +25,7 @@ final class QuarterlyInput {
     var shortTermCG: Double = 0.0
     var shortTermGain: Double = 0.0
     var longTermGain: Double = 0.0
+    var capitalGainDistribution = 0.0
     var fedCYWitholding: Double = 0.0
     var fedCYEstimates: Double = 0.0
     var stateCYWitholding: Double = 0.0
