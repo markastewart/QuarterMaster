@@ -41,7 +41,7 @@ struct FederalTaxCalculator {
         
         fedEstimate.taxableIncome = fedEstimate.adjustedGrossIncome - fedEstimate.totalDeductions
         
-        fedEstimate.totalTax = annualTaxCalc(quarterlyRecord: quarterlyRecord) /*- quarterlyRecord.foreignTaxPaid*/
+        fedEstimate.totalTax = annualTaxCalc(quarterlyRecord: quarterlyRecord) - SeasonalConstants.foreignTaxPaid
         
         fedEstimate.taxesPaid = quarterlyRecord.fedCYWitholding + quarterlyRecord.fedCYEstimates
         
@@ -59,7 +59,7 @@ struct FederalTaxCalculator {
         let annualizedSocialSecurity = quarterlyRecord.socialSecurity * Quarter.factor(for: fedEstimate.quarterID)
         
         if Int (annualizedAGI) > SeasonalConstants.ssMaxThreshold {
-            fedEstimate.taxableSocialSecurity = annualizedSocialSecurity * 0.85
+            fedEstimate.taxableSocialSecurity = (annualizedSocialSecurity * 0.85) + 2833
             
         }
         else if Int (annualizedAGI) < SeasonalConstants.ssMinThreshold {

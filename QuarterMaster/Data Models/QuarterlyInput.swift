@@ -11,20 +11,22 @@ import SwiftData
 @Model
 final class QuarterlyInput {
     var quarterID: String = ""
-    var pensionAnnuities : Double = 0.0
-    var socialSecurity : Double = 0.0
-    var interest: Double = 0.0
-    var oilRoyalties: Double = 0.0
-    var drugTrialCompensation: Double = 0.0
-    var pollWorker: Double = 0.0
-    var otherIncome: Double = 0.0
-    var ordinaryDividends: Double = 0.0
-    var qualifiedDividends: Double = 0.0
-    var qualifiedEligibleDividends: Double = 0.0
-    var iraDistributions: Double = 0.0
-    var shortTermCG: Double = 0.0
-    var shortTermGain: Double = 0.0
-    var longTermGain: Double = 0.0
+    var pensionAnnuities = 0.0
+    var socialSecurity = 0.0
+    var interest = 0.0
+    var oilRoyalties = 0.0
+    var drugTrialCompensation = 0.0
+    var pollWorker = 0.0
+    var otherIncome = 0.0
+    var ordinaryDividends = 0.0
+    var qualifiedDividends = 0.0
+    var qualifiedEligibleDividends = 0.0
+    var iraDistributions = 0.0
+    var shortTermCG = 0.0
+    var shortTermGain = 0.0
+    var longTermGain = 0.0
+    var reinvestSTCG = 0.0
+    var reinvestLTCG = 0.0
     var capitalGainDistribution = 0.0
     var fedCYWitholding: Double = 0.0
     var fedCYEstimates: Double = 0.0

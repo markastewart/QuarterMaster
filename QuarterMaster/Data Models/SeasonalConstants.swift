@@ -9,7 +9,10 @@ import Foundation
 
 struct SeasonalConstants {
     
-    static let qualifiedDividendsFactor = 0.56  // Use historical data relating ordinary dividends to qualified dividends.
+        // Historical Thrivent Select Account data (source year-end Tax Summary Report) relating ordinary dividends to qualified dividends and foreign taxes paid (both rolling 5-year averages). See Financial Spreadsheet.
+    static let qualifiedDividendsFactor = 0.56
+    static let foreignTaxPaid = 205.0
+    
     static let standardDeduction = 34700
     static let ssMaxThreshold = 44000
     static let ssMinThreshold = 32000
@@ -29,7 +32,7 @@ struct SeasonalConstants {
         }
     }
     
-    struct TaxTable2025 {
+    struct IRSTaxTable2025 {
         static let mfjBrackets: [TaxBracket] = [
             TaxBracket(rate: 0.10, minIncome: 0, maxIncome: 23850),
             TaxBracket(rate: 0.12, minIncome: 23851, maxIncome: 96950),
