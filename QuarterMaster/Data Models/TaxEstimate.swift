@@ -30,3 +30,25 @@ final class TaxEstimate {
         self.quarterID = quarterlyInput.quarterID
     }
 }
+
+enum TaxEntity: String, CaseIterable, Identifiable {
+    case federal = "Federal"
+    case state = "State"
+    
+        // Required for Identifiable so you can use it in a Picker
+    var id: String { self.rawValue }
+    
+//    var annualizationFactor: Double {
+//            switch self {
+//            case .first:  return 4.0   // 12 months / 3
+//            case .second: return 2.4   // 12 months / 5
+//            case .third:  return 1.5   // 12 months / 8
+//            case .fourth: return 1.0   // 12 months / 12
+//            }
+//        }
+//    
+//    static func factor(for rawValue: String) -> Double {
+//            // Returns the factor if found, or 1.0 (or 0.0) as a safe default
+//        return Quarter(rawValue: rawValue)?.annualizationFactor ?? 1.0
+//    }
+}

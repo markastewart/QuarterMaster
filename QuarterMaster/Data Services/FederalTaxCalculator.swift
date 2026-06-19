@@ -10,7 +10,7 @@ import Foundation
 struct FederalTaxCalculator {
     
     static func calculateFederalEstimate(quarterlyRecord: QuarterlyInput) {
-        let fedEstimate = TaxEstimate(taxEntity: "Federal", quarterlyInput: quarterlyRecord)
+        let fedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, quarterlyInput: quarterlyRecord)
         
         let taxableInterest = quarterlyRecord.interest
         

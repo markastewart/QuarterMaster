@@ -15,7 +15,7 @@ struct QuarterMasterDashboard: View {
     @State private var isImporting = false
     @State private var selectedQuarter: Quarter = .first
     
-    @Query(sort: \QuarterlyInput.quarterID) private var allQuarterlyData: [QuarterlyInput]
+    @Query(sort: \QuarterlyInput.quarterID) private var quarterlyData: [QuarterlyInput]
     
     var body: some View {
         NavigationStack {
@@ -28,9 +28,9 @@ struct QuarterMasterDashboard: View {
                     Divider()
                     
                     VStack(spacing: 20) {
-                        ledgerSection(title: "Federal Tax Estimates", data: allQuarterlyData, isFederal: true)
+                        ledgerSection(title: "Federal Tax Estimates", data: quarterlyData, isFederal: true)
                         Divider()
-                        ledgerSection(title: "State Tax Estimates", data: allQuarterlyData, isFederal: false)
+                        ledgerSection(title: "State Tax Estimates", data: quarterlyData, isFederal: false)
                     }
                     .padding()
                 }
@@ -60,7 +60,7 @@ struct QuarterMasterDashboard: View {
             Divider()
             
             VStack(alignment: .leading, spacing: 12) {
-                Text("Select Quarter and Import file").font(.caption.bold()).foregroundStyle(.secondary)
+                Text("Select Quarter and Import source file").font(.caption.bold()).foregroundStyle(.secondary)
                 
                 Picker("Quarter", selection: $selectedQuarter) {
                     ForEach(Quarter.allCases) { q in Text(q.rawValue).tag(q) }
