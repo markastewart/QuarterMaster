@@ -1,5 +1,5 @@
 //
-//  EstimateDetailView.swift
+//  EstimateDrillDown.swift
 //  QuarterMaster
 //
 //  Created by Mark A Stewart on 6/19/26.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct EstimateDetailView: View {
+struct EstimateDrillDown: View {
     @Environment(\.modelContext) private var modelContext
     let quarter: Quarter
     let taxEntity: TaxEntity

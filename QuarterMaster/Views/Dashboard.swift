@@ -54,7 +54,7 @@ struct QuarterMasterDashboard: View {
                 }
                 .navigationTitle("")
                 .navigationDestination(for: QuarterDrilldown.self) { drilldown in  // CHANGED type
-                    EstimateDetailView(quarter: drilldown.quarter, taxEntity: drilldown.taxEntity)
+                    EstimateDrillDown(quarter: drilldown.quarter, taxEntity: drilldown.taxEntity)
                 }
                 .onChange(of: quarterlyData) { _, newValue in
                     vm.quarterlyData = newValue
