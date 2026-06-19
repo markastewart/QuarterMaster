@@ -26,7 +26,7 @@ struct QuarterMasterApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Dashboard()
+            QuarterMasterDashboard()
         }
         .modelContainer(sharedModelContainer)
     }
