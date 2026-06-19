@@ -28,9 +28,10 @@ struct QuarterMasterDashboard: View {
                     Divider()
                     
                     VStack(spacing: 20) {
-                        ledgerSection(title: "Federal Tax Estimates", data: quarterlyData, isFederal: true)
+                        let _ = { vm.quarterlyData = quarterlyData }()
+                        ledgerSection(title: "Federal Tax Estimates", data: vm.federalOnlyRecords, isFederal: true)
                         Divider()
-                        ledgerSection(title: "State Tax Estimates", data: quarterlyData, isFederal: false)
+                        ledgerSection(title: "State Tax Estimates", data: vm.stateOnlyRecords, isFederal: false)
                     }
                     .padding()
                 }
@@ -81,15 +82,14 @@ struct QuarterMasterDashboard: View {
     }
     
     // MARK: - Reusable Ledger Section
-    private func ledgerSection(title: String, data: [QuarterlyInput], isFederal: Bool) -> some View {
+    private func ledgerSection(title: String, data: [TaxEstimate], isFederal: Bool) -> some View {
         VStack(alignment: .leading) {
             Text(title).font(.headline).padding(.bottom, 4)
             
             Table(data) {
                 TableColumn("Quarter") { Text($0.quarterID) }.width(80)
                 TableColumn(isFederal ? "Fed Liability" : "State Liability") {
-                    let index = isFederal ? 0 : 1
-                    Text($0.taxEstimates[index].taxEstimate, format: .currency(code: "USD"))
+                    Text($0.taxEstimate, format: .currency(code: "USD"))
                 }
             }
             .frame(minHeight: 200)
