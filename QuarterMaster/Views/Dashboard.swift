@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  Dashboard.swift
 //  QuarterMaster
 //
 //  Created by Mark A Stewart on 6/12/26.
@@ -87,7 +87,7 @@ struct QuarterMasterDashboard: View {
             Divider()
             
             VStack(alignment: .leading, spacing: 12) {
-                Text("Select Quarter and Import source file").font(.caption.bold()).foregroundStyle(.secondary)
+                Text("Select Quarter to estimate and Import source file").font(.caption.bold()).foregroundStyle(.secondary)
                 
                 Picker("Quarter", selection: $selectedQuarter) {
                     ForEach(Quarter.allCases) { q in Text(q.rawValue).tag(q) }
@@ -154,23 +154,6 @@ struct QuarterMasterDashboard: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-}
-
-
-struct EstimateDetailView: View {
-    @Environment(\.modelContext) private var modelContext
-    let quarter: Quarter
-    let taxEntity: TaxEntity
-    
-    @Query(sort: \QuarterlyInput.quarterID) private var allQuarterlyData: [QuarterlyInput]
-    
-    var body: some View {
-        ContentUnavailableView(
-            "Coming Soon",
-            systemImage: "hammer.fill",
-            description: Text("\(taxEntity == .federal ? "Federal" : "State") detail for \(quarter.rawValue) is under development.")
-        )
     }
 }
 
