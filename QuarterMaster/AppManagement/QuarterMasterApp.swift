@@ -27,6 +27,7 @@ struct QuarterMasterApp: App {
     var body: some Scene {
         WindowGroup {
             QuarterMasterDashboard()
+                .frame(maxWidth: .infinity)
         }
         .modelContainer(sharedModelContainer)
     }

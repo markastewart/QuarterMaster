@@ -14,8 +14,21 @@ struct QuarterMasterDashboard: View {
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
     @State private var selectedQuarter: Quarter = .first
-    
     @Query(sort: \QuarterlyInput.quarterID) private var quarterlyData: [QuarterlyInput]
+    
+        // Relate a display label to a TaxEstimate data item
+    struct TaxSummaryLabels{
+        let keyPath: KeyPath<TaxEstimate, Double>
+        let displayName: String
+    }
+    
+        // Define list of labels in the View
+    let taxDisplayConfigs = [
+        TaxSummaryLabels(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
+        TaxSummaryLabels(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
+        TaxSummaryLabels(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
+        TaxSummaryLabels(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
+    ]
     
     var body: some View {
         NavigationStack {
@@ -28,14 +41,20 @@ struct QuarterMasterDashboard: View {
                     Divider()
                     
                     VStack(spacing: 20) {
-                        let _ = { vm.quarterlyData = quarterlyData }()
-                        ledgerSection(title: "Federal Tax Estimates", data: vm.federalOnlyRecords, isFederal: true)
+                        ledgerSection(title: "Federal Tax Estimates", viewModel: vm, isFederal: true)
                         Divider()
-                        ledgerSection(title: "State Tax Estimates", data: vm.stateOnlyRecords, isFederal: false)
+                        ledgerSection(title: "State Tax Estimates", viewModel: vm, isFederal: false)
+                        Spacer()
                     }
                     .padding()
                 }
                 .navigationTitle("")
+                .onChange(of: quarterlyData) { _, newValue in
+                    vm.quarterlyData = newValue
+                }
+                .onAppear {
+                    vm.quarterlyData = quarterlyData
+                }
             }
         }
         .onAppear { if viewModel == nil { viewModel = DashboardVM(modelContext: modelContext) } }
@@ -80,22 +99,33 @@ struct QuarterMasterDashboard: View {
         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateQuarterlyEstimate(for: selectedQuarter, result: result, context: modelContext)
         }
     }
-    
+
     // MARK: - Reusable Ledger Section
-    private func ledgerSection(title: String, data: [TaxEstimate], isFederal: Bool) -> some View {
+    private func ledgerSection(title: String, viewModel: DashboardVM, isFederal: Bool) -> some View {
         VStack(alignment: .leading) {
             Text(title).font(.headline).padding(.bottom, 4)
+                .background(Color.blue.opacity(0.15))
             
-            Table(data) {
-                TableColumn("Quarter") { Text($0.quarterID) }.width(80)
-                TableColumn(isFederal ? "Fed Liability" : "State Liability") {
-                    Text($0.taxEstimate, format: .currency(code: "USD"))
-                }
+            let taxEntity = isFederal ?  TaxEntity.federal : TaxEntity.state
+            
+            Table(viewModel.summaryRows(for: taxDisplayConfigs, taxEntity: taxEntity )) {
+                TableColumn("") { Text($0.label).bold() }
+                    .width(min: 150)
+                
+                TableColumn(Quarter.first.rawValue) { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }
+                    .alignment(.center)
+                TableColumn(Quarter.second.rawValue) { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }
+                    .alignment(.center)
+                TableColumn(Quarter.third.rawValue) { Text($0.q3, format: .currency(code: "USD").precision(.fractionLength(0))) }
+                    .alignment(.center)
+                TableColumn(Quarter.fourth.rawValue) { Text($0.q4, format: .currency(code: "USD").precision(.fractionLength(0))) }
+                    .alignment(.center)
             }
-            .frame(minHeight: 200)
-            .navigationDestination(for: QuarterlyInput.self) { estimate in
-                EstimateDetailView(/*estimate: estimate*/)
-            }
+            .frame(height: CGFloat(viewModel.summaryRows(for: taxDisplayConfigs, taxEntity: taxEntity ).count) * 28 + 30)
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+        .navigationDestination(for: QuarterlyInput.self) { estimate in
+            EstimateDetailView(/*estimate: estimate*/)
         }
     }
 }
