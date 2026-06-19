@@ -31,7 +31,7 @@ final class TaxEstimate {
     }
 }
 
-enum TaxEntity: String, CaseIterable, Identifiable {
+enum TaxEntity: String, CaseIterable, Identifiable, Hashable {
     case federal = "Federal"
     case state = "State"
     

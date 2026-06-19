@@ -64,7 +64,7 @@ extension QuarterlyInput {
     }
 }
 
-enum Quarter: String, CaseIterable, Identifiable {
+enum Quarter: String, CaseIterable, Identifiable, Hashable {
     case first = "1Q"
     case second = "2Q"
     case third = "3Q"

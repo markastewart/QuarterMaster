@@ -14,15 +14,19 @@ struct QuarterMasterDashboard: View {
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
     @State private var selectedQuarter: Quarter = .first
+    @State private var path = NavigationPath()
     @Query(sort: \QuarterlyInput.quarterID) private var quarterlyData: [QuarterlyInput]
     
-        // Relate a display label to a TaxEstimate data item
-    struct TaxSummaryLabels{
+    struct TaxSummaryLabels {
         let keyPath: KeyPath<TaxEstimate, Double>
         let displayName: String
     }
     
-        // Define list of labels in the View
+    struct QuarterDrilldown: Hashable {
+        let quarter: Quarter
+        let taxEntity: TaxEntity
+    }
+    
     let taxDisplayConfigs = [
         TaxSummaryLabels(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
         TaxSummaryLabels(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
@@ -31,7 +35,7 @@ struct QuarterMasterDashboard: View {
     ]
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             if let vm = viewModel {
                 HStack(alignment: .top, spacing: 0) {
                     controlSidebarPane(vm: vm)
@@ -49,6 +53,9 @@ struct QuarterMasterDashboard: View {
                     .padding()
                 }
                 .navigationTitle("")
+                .navigationDestination(for: QuarterDrilldown.self) { drilldown in  // CHANGED type
+                    EstimateDetailView(quarter: drilldown.quarter, taxEntity: drilldown.taxEntity)
+                }
                 .onChange(of: quarterlyData) { _, newValue in
                     vm.quarterlyData = newValue
                 }
@@ -60,7 +67,7 @@ struct QuarterMasterDashboard: View {
         .onAppear { if viewModel == nil { viewModel = DashboardVM(modelContext: modelContext) } }
     }
     
-    // MARK: - Sidebar
+        // MARK: - Sidebar
     private func controlSidebarPane(vm: DashboardVM) -> some View {
         VStack(alignment: .leading, spacing: 24) {
             HStack(spacing: 12) {
@@ -99,52 +106,70 @@ struct QuarterMasterDashboard: View {
         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateQuarterlyEstimate(for: selectedQuarter, result: result, context: modelContext)
         }
     }
-
-    // MARK: - Reusable Ledger Section
+    
+        // MARK: - Reusable Ledger Section
     private func ledgerSection(title: String, viewModel: DashboardVM, isFederal: Bool) -> some View {
         VStack(alignment: .leading) {
             Text(title).font(.headline).padding(.bottom, 4)
-                .background(Color.blue.opacity(0.15))
             
-            let taxEntity = isFederal ?  TaxEntity.federal : TaxEntity.state
+            let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
+            let rows = viewModel.summaryRows(for: taxDisplayConfigs, taxEntity: taxEntity)
             
-            Table(viewModel.summaryRows(for: taxDisplayConfigs, taxEntity: taxEntity )) {
+            Table(rows) {
                 TableColumn("") { Text($0.label).bold() }
                     .width(min: 150)
                 
-                TableColumn(Quarter.first.rawValue) { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }
-                    .alignment(.center)
-                TableColumn(Quarter.second.rawValue) { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }
-                    .alignment(.center)
-                TableColumn(Quarter.third.rawValue) { Text($0.q3, format: .currency(code: "USD").precision(.fractionLength(0))) }
-                    .alignment(.center)
-                TableColumn(Quarter.fourth.rawValue) { Text($0.q4, format: .currency(code: "USD").precision(.fractionLength(0))) }
-                    .alignment(.center)
+                TableColumn(Quarter.first.rawValue) { row in
+                    clickableCell(row.q1, quarter: .first, taxEntity: taxEntity)
+                }
+                .alignment(.center)
+                
+                TableColumn(Quarter.second.rawValue) { row in
+                    clickableCell(row.q2, quarter: .second, taxEntity: taxEntity)
+                }
+                .alignment(.center)
+                
+                TableColumn(Quarter.third.rawValue) { row in
+                    clickableCell(row.q3, quarter: .third, taxEntity: taxEntity)
+                }
+                .alignment(.center)
+                
+                TableColumn(Quarter.fourth.rawValue) { row in
+                    clickableCell(row.q4, quarter: .fourth, taxEntity: taxEntity)
+                }
+                .alignment(.center)
             }
-            .frame(height: CGFloat(viewModel.summaryRows(for: taxDisplayConfigs, taxEntity: taxEntity ).count) * 28 + 30)
+            .frame(height: CGFloat(rows.count) * 28 + 30)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
-        .navigationDestination(for: QuarterlyInput.self) { estimate in
-            EstimateDetailView(/*estimate: estimate*/)
+    }
+    
+    @ViewBuilder
+    private func clickableCell(_ value: Double, quarter: Quarter, taxEntity: TaxEntity) -> some View {
+        Button {
+            path.append(QuarterDrilldown(quarter: quarter, taxEntity: taxEntity))
+        } label: {
+            Text(value, format: .currency(code: "USD").precision(.fractionLength(0)))
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }
 
 
 struct EstimateDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel: DashboardVM?
-    @State private var isImporting = false
-    @State private var selectedQuarter: Quarter = .first
+    let quarter: Quarter
+    let taxEntity: TaxEntity
     
-        // Assuming QuarterlyInput is the model holding your estimate data
     @Query(sort: \QuarterlyInput.quarterID) private var allQuarterlyData: [QuarterlyInput]
     
     var body: some View {
         ContentUnavailableView(
             "Coming Soon",
             systemImage: "hammer.fill",
-            description: Text("This feature is currently under development and will be available in a future update.")
+            description: Text("\(taxEntity == .federal ? "Federal" : "State") detail for \(quarter.rawValue) is under development.")
         )
     }
 }
