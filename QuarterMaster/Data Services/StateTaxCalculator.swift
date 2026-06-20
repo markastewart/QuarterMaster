@@ -19,10 +19,10 @@ struct StateTaxCalculator {
             return
         }
         
-        let fedAGI = fedEstimate.adjustedGrossIncome
+        stateEstimate.fedAGI = fedEstimate.adjustedGrossIncome
         stateEstimate.incomeAdditions = calculateAdditions(quarterlyResults: quarterlyRecord)
         stateEstimate.totalDeductions = calculateDeductions (quarterlyResults: quarterlyRecord, fedResults: fedEstimate)
-        stateEstimate.adjustedGrossIncome = fedAGI + stateEstimate.incomeAdditions - stateEstimate.totalDeductions
+        stateEstimate.adjustedGrossIncome = stateEstimate.fedAGI + stateEstimate.incomeAdditions - stateEstimate.totalDeductions
         
         let exemptions = SeasonalConstants.stateExemption * 2
         stateEstimate.taxableIncome = stateEstimate.adjustedGrossIncome - exemptions

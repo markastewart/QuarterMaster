@@ -19,9 +19,10 @@ final class TaxEstimate {
     var additionalDeductions = 0.0
     var totalDeductions = 0.0
     var taxableIncome = 0.0
-    var totalTax : Double = 0.0
-    var taxesPaid: Double = 0.0
-    var taxEstimate: Double = 0.0
+    var totalTax = 0.0
+    var taxesPaid = 0.0
+    var taxEstimate = 0.0
+    var fedAGI = 0.0
     
     var quarterlyInput: QuarterlyInput?
         

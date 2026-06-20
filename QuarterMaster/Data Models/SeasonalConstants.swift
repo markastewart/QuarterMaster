@@ -20,6 +20,7 @@ struct SeasonalConstants {
     static let enhancedDeductionThreshold = 150000.0
     static let stateExemption = 1900.0
     static let nonTaxDividendsFactor = 0.96         // Used for state calculation of additional taxable income.
+    static let programYear = "2025"
     
     struct TaxBracket {
         let rate: Double

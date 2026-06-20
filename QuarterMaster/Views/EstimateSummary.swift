@@ -15,16 +15,11 @@ struct EstimateSummary: View {
     @State private var selectedRowID: String?
     @State private var showDrillDown = false
     
-    struct TaxSummaryLabels {
-        let keyPath: KeyPath<TaxEstimate, Double>
-        let displayName: String
-    }
-    
     let taxDisplayConfigs = [
-        TaxSummaryLabels(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
-        TaxSummaryLabels(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
-        TaxSummaryLabels(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
-        TaxSummaryLabels(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
+        TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
+        TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
+        TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
+        TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
     ]
     
     var body: some View {
@@ -35,8 +30,7 @@ struct EstimateSummary: View {
             let rows = viewModel.summaryRows(for: taxDisplayConfigs, taxEntity: taxEntity)
             
             Table(rows, selection: $selectedRowID) {
-                TableColumn("") { Text($0.label).bold() }
-                    .width(min: 150)
+                TableColumn("") { Text($0.label).bold() }.width(min: 200)
                 
                 TableColumn("1Q") { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
                 TableColumn("2Q") { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)

@@ -56,7 +56,7 @@ struct QuarterMasterDashboard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 
                 VStack(alignment: .leading) {
-                    Text("QuarterMaster").font(.title2).bold()
+                    Text("QuarterMaster " + "\(SeasonalConstants.programYear)" ).font(.title2).bold()
                     Text("Income Tax Estimator").font(.caption).foregroundStyle(.secondary)
                 }
             }
