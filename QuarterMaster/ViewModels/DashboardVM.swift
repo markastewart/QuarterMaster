@@ -34,16 +34,17 @@ class DashboardVM {
                 .filter { $0.taxEntity == TaxEntity.state.rawValue }
     }
     
-    struct TaxSummaryRow: Identifiable {
-        let id = UUID()
+    struct TaxSummaryRow: Identifiable, Hashable {
         let label: String
         let q1: Double
         let q2: Double
         let q3: Double
         let q4: Double
+        
+        var id: String { label }
     }
     
-    func summaryRows(for configs: [QuarterMasterDashboard.TaxSummaryLabels], taxEntity: TaxEntity) -> [TaxSummaryRow] {
+    func summaryRows(for configs: [EstimateSummary.TaxSummaryLabels], taxEntity: TaxEntity) -> [TaxSummaryRow] {
         let taxResults = taxEntity == TaxEntity.federal ? federalTaxResults : stateTaxResults
         return configs.map { config in
             TaxSummaryRow(
