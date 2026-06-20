@@ -18,6 +18,7 @@ struct SeasonalConstants {
     static let ssMinThreshold = 32000
     static let maxEnhancedDeduction = 6000.0
     static let enhancedDeductionThreshold = 150000.0
+    static let stateExemption = 1900.0
     
     struct TaxBracket {
         let rate: Double
@@ -41,6 +42,58 @@ struct SeasonalConstants {
             TaxBracket(rate: 0.32, minIncome: 394601, maxIncome: 501050),
             TaxBracket(rate: 0.35, minIncome: 501051, maxIncome: 751600),
             TaxBracket(rate: 0.37, minIncome: 751601, maxIncome: nil)
+        ]
+            // Helper to retrieve marginal tax rate. If income above maxIncomes, defaults to final (highest) bracket.
+        static func getMarginalRate(for income: Double) -> Double {
+            let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
+            return bracket.rate
+        }
+    }
+    
+    struct StateTaxBracket {
+        let rate: Double
+        let minTax: Double
+        let minIncome: Double
+        let maxIncome: Double?
+        
+        func contains(_ income: Double) -> Bool {
+            if let max = maxIncome {
+                return income >= minIncome && income <= max
+            }
+            return income >= minIncome
+        }
+    }
+    
+    struct OhioTaxTable2025 {
+        static let mfjBrackets: [StateTaxBracket] = [
+            StateTaxBracket(rate: 0.00, minTax: 0.00, minIncome: 0, maxIncome: 26050),
+            StateTaxBracket(rate: 0.0275, minTax: 342.00, minIncome: 26051, maxIncome: 100000),
+            StateTaxBracket(rate: 0.03125, minTax: 2394.32, minIncome: 100001, maxIncome: nil)
+        ]
+            // Helper to retrieve marginal tax rate. If income above maxIncomes, defaults to final (highest) bracket.
+        static func getMarginalRate(for income: Double) -> Double {
+            let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
+            return bracket.rate
+        }
+            
+        static func getMinTax(for income: Double) -> Double {
+            let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
+            return bracket.minTax
+        }
+        
+        static func getBracketStart(for income: Double) -> Double {
+            let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
+            return bracket.minIncome
+        }
+    }
+    
+    struct OhioJFC2025 {
+        static let mfjBrackets: [TaxBracket] = [
+            TaxBracket(rate: 0.20, minIncome: 0, maxIncome: 25000),
+            TaxBracket(rate: 0.15, minIncome: 25001, maxIncome: 50000),
+            TaxBracket(rate: 0.10, minIncome: 50001, maxIncome: 75000),
+            TaxBracket(rate: 0.05, minIncome: 75001, maxIncome: 749999),
+            TaxBracket(rate: 0.00, minIncome: 750000, maxIncome: nil),
         ]
             // Helper to retrieve marginal tax rate. If income above maxIncomes, defaults to final (highest) bracket.
         static func getMarginalRate(for income: Double) -> Double {

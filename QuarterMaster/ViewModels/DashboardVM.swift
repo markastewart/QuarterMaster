@@ -84,7 +84,7 @@ class DashboardVM {
             
             FederalTaxCalculator.calculateFederalEstimate(quarterlyRecord: quarterlyRec)
             
-            StateTaxCalculator.calculateStateEstimate(quarterlyRecord: quarterlyRec)
+            StateTaxCalculator.calculateStateEstimate(quarterlyRecord: quarterlyRec, fedTaxResults: federalTaxResults)
         }
         try? context.save()
     }

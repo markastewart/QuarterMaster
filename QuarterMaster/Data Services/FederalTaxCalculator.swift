@@ -109,10 +109,10 @@ struct FederalTaxCalculator {
         for taxTableRecord in SeasonalConstants.IRSTaxTable2025.mfjBrackets {
             
                 // Loop through brackets preceding the bracket for the taxableIncome
-            if taxTableRecord.maxIncome! < taxableIncome {
+            if let max = taxTableRecord.maxIncome, taxableIncome > max {
                 totalTax += (taxTableRecord.maxIncome! - taxTableRecord.minIncome) * taxTableRecord.rate
             }
-                // This is the bracket for the income
+                // This is the bracket for the  taxable income
             else {
                 totalTax += (taxableIncome - taxTableRecord.minIncome) * taxTableRecord.rate
                 break

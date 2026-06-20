@@ -9,9 +9,52 @@ import Foundation
 
 struct StateTaxCalculator {
     
-    static func calculateStateEstimate(quarterlyRecord: QuarterlyInput) {
-        var fedEstimate = TaxEstimate(taxEntity: "State", quarterlyInput: quarterlyRecord)
+    static func calculateStateEstimate(quarterlyRecord: QuarterlyInput, fedTaxResults: [TaxEstimate]) {
+        let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, quarterlyInput: quarterlyRecord)
         
+        guard let fedEstimate = quarterlyRecord.taxEstimates.first(where: {
+            $0.quarterID == quarterlyRecord.quarterID
+        }) else {
+            print("No federal estimate found for \(quarterlyRecord.quarterID)")
+            return
+        }
         
+        let fedAGI = fedEstimate.adjustedGrossIncome
+        stateEstimate.incomeAdditions = calculateAdditions(quarterlyResults: quarterlyRecord, fedResults: fedEstimate)
+        stateEstimate.totalDeductions = calculateDeductions (quarterlyResults: quarterlyRecord, fedResults: fedEstimate)
+        stateEstimate.adjustedGrossIncome = fedAGI + stateEstimate.incomeAdditions - stateEstimate.totalDeductions
+        
+        let exemptions = SeasonalConstants.stateExemption * 2
+        stateEstimate.taxableIncome = stateEstimate.adjustedGrossIncome - exemptions
+        
+        stateEstimate.totalTax = calculateTaxFromTables(taxableIncome: stateEstimate.taxableIncome)
+        let credits = calculateCredits(taxLiability: stateEstimate.totalTax, taxableIncome: stateEstimate.taxableIncome)
+        stateEstimate.totalTax -= credits
+        
+        stateEstimate.taxesPaid = quarterlyRecord.stateCYEstimates + quarterlyRecord.stateCYWitholding
+        stateEstimate.taxEstimate = stateEstimate.totalTax - stateEstimate.taxesPaid
+    }
+    
+    static func calculateAdditions(quarterlyResults: QuarterlyInput, fedResults: TaxEstimate) -> Double {
+        return 0.0
+    }
+    
+    static func calculateDeductions(quarterlyResults: QuarterlyInput, fedResults: TaxEstimate) -> Double {
+        let deductions = fedResults.taxableSocialSecurity //+  
+        return deductions
+    }
+    
+    static func calculateTaxFromTables(taxableIncome: Double) -> Double {
+        
+        let minTax = SeasonalConstants.OhioTaxTable2025.getMinTax(for: taxableIncome)
+        let minRate = SeasonalConstants.OhioTaxTable2025.getMarginalRate(for: taxableIncome)
+        let totalTax = minTax + ((taxableIncome - SeasonalConstants.OhioTaxTable2025.getBracketStart(for: taxableIncome)) * minRate)
+        return totalTax
+    }
+    
+    static func calculateCredits(taxLiability: Double, taxableIncome: Double) -> Double {
+        
+        let jfcRate = SeasonalConstants.OhioJFC2025.getMarginalRate(for: taxableIncome)
+        return taxLiability * jfcRate
     }
 }

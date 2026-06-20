@@ -14,6 +14,7 @@ final class TaxEstimate {
     var taxEntity: String = ""
     var taxableSocialSecurity = 0.0
     var adjustedGrossIncome = 0.0
+    var incomeAdditions = 0.0
     var taxableCapitalGains = 0.0
     var additionalDeductions = 0.0
     var totalDeductions = 0.0
