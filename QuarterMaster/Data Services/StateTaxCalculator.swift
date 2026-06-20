@@ -20,7 +20,7 @@ struct StateTaxCalculator {
         }
         
         let fedAGI = fedEstimate.adjustedGrossIncome
-        stateEstimate.incomeAdditions = calculateAdditions(quarterlyResults: quarterlyRecord, fedResults: fedEstimate)
+        stateEstimate.incomeAdditions = calculateAdditions(quarterlyResults: quarterlyRecord)
         stateEstimate.totalDeductions = calculateDeductions (quarterlyResults: quarterlyRecord, fedResults: fedEstimate)
         stateEstimate.adjustedGrossIncome = fedAGI + stateEstimate.incomeAdditions - stateEstimate.totalDeductions
         
@@ -35,12 +35,13 @@ struct StateTaxCalculator {
         stateEstimate.taxEstimate = stateEstimate.totalTax - stateEstimate.taxesPaid
     }
     
-    static func calculateAdditions(quarterlyResults: QuarterlyInput, fedResults: TaxEstimate) -> Double {
-        return 0.0
+    static func calculateAdditions(quarterlyResults: QuarterlyInput) -> Double {
+        let additions = quarterlyResults.dividendsNonTaxable * SeasonalConstants.nonTaxDividendsFactor
+        return additions
     }
     
     static func calculateDeductions(quarterlyResults: QuarterlyInput, fedResults: TaxEstimate) -> Double {
-        let deductions = fedResults.taxableSocialSecurity //+  
+        let deductions = fedResults.taxableSocialSecurity + quarterlyResults.deposit529
         return deductions
     }
     

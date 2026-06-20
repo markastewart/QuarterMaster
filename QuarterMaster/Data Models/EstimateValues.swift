@@ -28,6 +28,8 @@ enum EstimateValues: String, CaseIterable {
     case fedCYEstimates = "Federal Income Tax - CY Estimated"
     case stateCYWitholding = "State Income Tax - CY Witholding"
     case stateCYEstimates = "State Income Tax - CY Estimated"
+    case deposit529 = "529 Deposit"
+    case dividendsNonTaxable = "Dividends NonTaxable"
 
 
         // Maps the Enum case to the actual property in your SwiftData model
@@ -53,6 +55,8 @@ enum EstimateValues: String, CaseIterable {
         case .fedCYEstimates: return \.fedCYEstimates
         case .stateCYWitholding: return \.stateCYWitholding
         case .stateCYEstimates: return \.stateCYEstimates
+        case .deposit529: return \.deposit529
+        case .dividendsNonTaxable: return \.dividendsNonTaxable
         }
     }
 }

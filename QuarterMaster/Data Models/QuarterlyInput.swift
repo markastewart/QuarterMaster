@@ -28,10 +28,12 @@ final class QuarterlyInput {
     var reinvestSTCG = 0.0
     var reinvestLTCG = 0.0
     var capitalGainDistribution = 0.0
-    var fedCYWitholding: Double = 0.0
-    var fedCYEstimates: Double = 0.0
-    var stateCYWitholding: Double = 0.0
-    var stateCYEstimates: Double = 0.0
+    var fedCYWitholding = 0.0
+    var fedCYEstimates = 0.0
+    var stateCYWitholding = 0.0
+    var stateCYEstimates = 0.0
+    var deposit529 = 0.0
+    var dividendsNonTaxable = 0.0
     
     @Relationship(deleteRule: .cascade, inverse: \TaxEstimate.quarterlyInput)
     var taxEstimates: [TaxEstimate] = []
