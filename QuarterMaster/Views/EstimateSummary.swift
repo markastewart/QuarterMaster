@@ -49,7 +49,7 @@ struct EstimateSummary: View {
                 }
             }
             .navigationDestination(isPresented: $showDrillDown) {
-                EstimateDrillDown(taxEntity: taxEntity, viewModel: viewModel)
+                EstimateDrillDown(title: taxEntity.rawValue, viewModel: viewModel, isFederal: isFederal)
             }
             .frame(height: CGFloat(rows.count) * 28 + 30)
         }
