@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftData
-import SwiftUI
 
 @Observable
 class DashboardVM {
@@ -42,56 +41,6 @@ class DashboardVM {
         let q4: Double
         
         var id: String { label }
-    }
-    
-    func summaryRows(for configs: [TaxEstimateResultMap], taxEntity: TaxEntity) -> [TaxSummaryRow] {
-        let taxResults = taxEntity == TaxEntity.federal ? federalTaxResults : stateTaxResults
-        return configs.map { config in
-            TaxSummaryRow(
-                label: config.displayName,
-                q1: taxResults.first(where: { $0.quarterlyInput?.quarterID == Quarter.first.rawValue })?[keyPath: config.keyPath] ?? 0,
-                q2: taxResults.first(where: { $0.quarterlyInput?.quarterID == Quarter.second.rawValue })?[keyPath: config.keyPath] ?? 0,
-                q3: taxResults.first(where: { $0.quarterlyInput?.quarterID == Quarter.third.rawValue })?[keyPath: config.keyPath] ?? 0,
-                q4: taxResults.first(where: { $0.quarterlyInput?.quarterID == Quarter.fourth.rawValue })?[keyPath: config.keyPath] ?? 0
-            )
-        }
-    }
-    
-    struct DrilldownRow: Identifiable {
-        let label: String
-        let q1: Double
-        let q2: Double
-        let q3: Double
-        let q4: Double
-        
-        var id: String { label }
-    }
-
-    func drilldownRows(
-        configs: [DrilldownRowConfig],
-        taxEntity: TaxEntity,
-        quarterlyData: [QuarterlyInput]
-    ) -> [DrilldownRow] {
-        func data(for quarterID: String) -> (QuarterlyInput?, TaxEstimate?) {
-            let input = quarterlyData.first { $0.quarterID == quarterID }
-            let estimate = input?.taxEstimates.first { $0.taxEntity == taxEntity.rawValue }
-            return (input, estimate)
-        }
-        
-        let q1Data = data(for: Quarter.first.rawValue)
-        let q2Data = data(for: Quarter.second.rawValue)
-        let q3Data = data(for: Quarter.third.rawValue)
-        let q4Data = data(for: Quarter.fourth.rawValue)
-        
-        return configs.map { config in
-            DrilldownRow(
-                label: config.displayName,
-                q1: config.extract(q1Data.0, q1Data.1),
-                q2: config.extract(q2Data.0, q2Data.1),
-                q3: config.extract(q3Data.0, q3Data.1),
-                q4: config.extract(q4Data.0, q4Data.1)
-            )
-        }
     }
     
     func generateQuarterlyEstimate(for quarter: Quarter, result: Result<[URL], Error>, context: ModelContext) {

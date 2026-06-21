@@ -10,9 +10,8 @@ import SwiftData
 
 struct EstimateDrillDown: View {
     let title: String
-    let viewModel: DashboardVM
     let isFederal: Bool
-    @Query(sort: \QuarterlyInput.quarterID) private var allQuarterlyData: [QuarterlyInput]
+    let quarterlyData: [QuarterlyInput]
     
     let federalDrilldownConfigs: [DrilldownRowConfig] = [
         DrilldownRowConfig(displayName: "Interest") { input, _ in input?.interest ?? 0 },
@@ -44,28 +43,69 @@ struct EstimateDrillDown: View {
     ]
     
     var body: some View {
-        let entity = isFederal ? TaxEntity.federal : TaxEntity.state
-        let drilldownConfigs = isFederal ? federalDrilldownConfigs : stateDrilldownConfigs
-        
-        let rows = viewModel.drilldownRows(configs: drilldownConfigs, taxEntity: entity, quarterlyData: allQuarterlyData)
-        
-        VStack {
-            Table(rows) {
-                TableColumn("") { Text($0.label).bold() }.width(min: 200)
-                TableColumn("1Q") { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                TableColumn("2Q") { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                TableColumn("3Q") { Text($0.q3, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                TableColumn("4Q") { Text($0.q4, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-            }
-            .frame(minWidth: 500, maxWidth: 900)
-            .navigationTitle("\(entity.rawValue) Detail")
+            let entity = isFederal ? TaxEntity.federal : TaxEntity.state
+            let drilldownConfigs = isFederal ? federalDrilldownConfigs : stateDrilldownConfigs
             
-            HStack {
-                Text("* - calculated based on an internal factor")
-                    .font(.caption2)
-                    .padding(15)
-                Spacer()
-            }
+        let rows = drilldownRows(configs: drilldownConfigs, taxEntity: entity, quarterlyData: quarterlyData)
+            
+            VStack {
+                Table(rows) {
+                    TableColumn("") { Text($0.label).bold() }.width(min: 200)
+                    TableColumn("1Q") { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
+                    TableColumn("2Q") { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
+                    TableColumn("3Q") { Text($0.q3, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
+                    TableColumn("4Q") { Text($0.q4, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
+                }
+                .frame(minWidth: 500, maxWidth: 900)
+                .navigationTitle("\(entity.rawValue) Detail")
+                
+                HStack {
+                    Text("* - calculated based on an internal factor")
+                        .font(.caption2)
+                        .padding(15)
+                    Spacer()
+                }
         }
     }
 }
+
+    // Support functions, structures for the view.
+
+struct DrilldownRowConfig {
+    let displayName: String
+    let extract: (QuarterlyInput?, TaxEstimate?) -> Double
+}
+
+struct DrilldownRow: Identifiable {
+    let label: String
+    let q1: Double
+    let q2: Double
+    let q3: Double
+    let q4: Double
+    
+    var id: String { label }
+}
+
+func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, quarterlyData: [QuarterlyInput]) -> [DrilldownRow] {
+    func data(for quarterID: String) -> (QuarterlyInput?, TaxEstimate?) {
+        let input = quarterlyData.first { $0.quarterID == quarterID }
+        let estimate = input?.taxEstimates.first { $0.taxEntity == taxEntity.rawValue }
+        return (input, estimate)
+    }
+    
+    let q1Data = data(for: Quarter.first.rawValue)
+    let q2Data = data(for: Quarter.second.rawValue)
+    let q3Data = data(for: Quarter.third.rawValue)
+    let q4Data = data(for: Quarter.fourth.rawValue)
+    
+    return configs.map { config in
+        DrilldownRow(
+            label: config.displayName,
+            q1: config.extract(q1Data.0, q1Data.1),
+            q2: config.extract(q2Data.0, q2Data.1),
+            q3: config.extract(q3Data.0, q3Data.1),
+            q4: config.extract(q4Data.0, q4Data.1)
+        )
+    }
+}
+

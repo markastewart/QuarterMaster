@@ -27,9 +27,9 @@ struct QuarterMasterDashboard: View {
                     Divider()
                     
                     VStack(spacing: 20) {
-                        EstimateSummary(title: "Federal Tax Estimates", viewModel: vm, isFederal: true)
+                        EstimateSummary(title: "Federal Tax Estimates", isFederal: true, quarterlyData: quarterlyData)
                         Divider()
-                        EstimateSummary(title: "State Tax Estimates", viewModel: vm, isFederal: false)
+                        EstimateSummary(title: "State Tax Estimates", isFederal: false, quarterlyData: quarterlyData)
                     }
                     .padding()
                 }
