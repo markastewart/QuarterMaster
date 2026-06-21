@@ -12,7 +12,7 @@ struct DataCurator {
     static func curateData(quarterlyRecord: QuarterlyInput) {
         
             // Aggregate other income parts to a single value for other income.
-        let otherIncomeFields: [EstimateValues] = [.oilRoyalties, .drugTrialCompensation, .pollWorker]
+        let otherIncomeFields: [EstimateValues] = [.oilRoyalties, .supplementalIncome]
         
         var calculatedOtherIncome = 00.0
         for field in otherIncomeFields {

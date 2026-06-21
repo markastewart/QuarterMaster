@@ -15,8 +15,7 @@ final class QuarterlyInput {
     var socialSecurity = 0.0
     var interest = 0.0
     var oilRoyalties = 0.0
-    var drugTrialCompensation = 0.0
-    var pollWorker = 0.0
+    var supplementalIncome = 0.0
     var otherIncome = 0.0
     var ordinaryDividends = 0.0
     var qualifiedDividends = 0.0
