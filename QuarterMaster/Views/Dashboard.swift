@@ -14,7 +14,7 @@ struct QuarterMasterDashboard: View {
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
     @State private var selectedQuarter: Quarter = .first
-    @Query(sort: \QuarterlyInput.quarterID) private var quarterlyData: [QuarterlyInput]
+    @Query(sort: \TaxPeriodInput.quarterID) private var quarterlyData: [TaxPeriodInput]
     
     var body: some View {
         NavigationStack() {

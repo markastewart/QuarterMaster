@@ -9,7 +9,7 @@ import Foundation
 
 struct StateTaxCalculator {
     
-    static func calculateStateEstimate(quarterlyRecord: QuarterlyInput, fedTaxResults: [TaxEstimate]) {
+    static func calculateStateEstimate(quarterlyRecord: TaxPeriodInput, fedTaxResults: [TaxEstimate]) {
         let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, quarterlyInput: quarterlyRecord)
         
         guard let fedEstimate = quarterlyRecord.taxEstimates.first(where: {
@@ -38,12 +38,12 @@ struct StateTaxCalculator {
         stateEstimate.taxEstimate = prorateTaxDue
     }
     
-    static func calculateAdditions(quarterlyResults: QuarterlyInput) -> Double {
+    static func calculateAdditions(quarterlyResults: TaxPeriodInput) -> Double {
         let additions = quarterlyResults.dividendsNonTaxable * SeasonalConstants.nonTaxDividendsFactor
         return additions
     }
     
-    static func calculateDeductions(quarterlyResults: QuarterlyInput, fedResults: TaxEstimate) -> Double {
+    static func calculateDeductions(quarterlyResults: TaxPeriodInput, fedResults: TaxEstimate) -> Double {
         let deductions = fedResults.taxableSocialSecurity + quarterlyResults.deposit529
         return deductions
     }

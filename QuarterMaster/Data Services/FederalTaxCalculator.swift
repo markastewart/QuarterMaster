@@ -9,7 +9,7 @@ import Foundation
 
 struct FederalTaxCalculator {
     
-    static func calculateFederalEstimate(quarterlyRecord: QuarterlyInput) {
+    static func calculateFederalEstimate(quarterlyRecord: TaxPeriodInput) {
         let fedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, quarterlyInput: quarterlyRecord)
         
         let taxableInterest = quarterlyRecord.interest
@@ -53,7 +53,7 @@ struct FederalTaxCalculator {
     
     
         // taxableSocialSecurityCalc - Calculate taxable social security for estimate.
-    static func taxableSocialSecurityCalc(fedEstimate: TaxEstimate, quarterlyRecord: QuarterlyInput) {
+    static func taxableSocialSecurityCalc(fedEstimate: TaxEstimate, quarterlyRecord: TaxPeriodInput) {
 
         // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
         
@@ -74,7 +74,7 @@ struct FederalTaxCalculator {
     }
     
     
-    static func taxableCapitalGainsCalc(quarterlyRecord: QuarterlyInput, fedEstimate: TaxEstimate) {
+    static func taxableCapitalGainsCalc(quarterlyRecord: TaxPeriodInput, fedEstimate: TaxEstimate) {
         
         fedEstimate.taxableCapitalGains = quarterlyRecord.shortTermCG + quarterlyRecord.longTermGain + quarterlyRecord.capitalGainDistribution
     }
@@ -89,7 +89,7 @@ struct FederalTaxCalculator {
     }
     
     
-    static func annualTaxCalc(quarterlyRec: QuarterlyInput, fedEstimate: TaxEstimate) -> Double {
+    static func annualTaxCalc(quarterlyRec: TaxPeriodInput, fedEstimate: TaxEstimate) -> Double {
         
         let taxableGains = quarterlyRec.qualifiedDividends + quarterlyRec.capitalGainDistribution + quarterlyRec.longTermGain
         

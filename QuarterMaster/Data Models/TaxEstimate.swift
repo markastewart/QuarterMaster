@@ -24,9 +24,9 @@ final class TaxEstimate {
     var taxEstimate = 0.0
     var fedAGI = 0.0
     
-    var quarterlyInput: QuarterlyInput?
+    var quarterlyInput: TaxPeriodInput?
         
-    init(taxEntity: String, quarterlyInput: QuarterlyInput) {
+    init(taxEntity: String, quarterlyInput: TaxPeriodInput) {
         self.taxEntity = taxEntity
         self.quarterlyInput = quarterlyInput
         self.quarterID = quarterlyInput.quarterID

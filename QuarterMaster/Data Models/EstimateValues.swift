@@ -32,7 +32,7 @@ enum EstimateValues: String, CaseIterable {
 
 
         // Maps the Enum case to the actual property in your SwiftData model
-    var keyPath: WritableKeyPath<QuarterlyInput, Double> {
+    var keyPath: WritableKeyPath<TaxPeriodInput, Double> {
         switch self {
         case .pensionAnnuities: return \.pensionAnnuities
         case .socialSecurity: return \.socialSecurity

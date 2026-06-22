@@ -11,7 +11,7 @@ import SwiftData
 struct EstimateSummary: View {
     let title: String
     let isFederal: Bool
-    let quarterlyData: [QuarterlyInput]
+    let quarterlyData: [TaxPeriodInput]
     
     @State private var selectedRowID: String?
     @State private var showDrillDown = false
@@ -65,13 +65,13 @@ struct TaxSummaryRow: Identifiable, Hashable {
     var id: String { label }
 }
 
-func taxResults(from quarterlyData: [QuarterlyInput], taxEntity: TaxEntity) -> [TaxEstimate] {
+func taxResults(from quarterlyData: [TaxPeriodInput], taxEntity: TaxEntity) -> [TaxEstimate] {
     quarterlyData
         .flatMap { $0.taxEstimates }
         .filter { $0.taxEntity == taxEntity.rawValue }
 }
 
-func summaryRows(quarterlyData: [QuarterlyInput], configs: [TaxEstimateResultMap], taxEntity: TaxEntity) -> [TaxSummaryRow] {
+func summaryRows(quarterlyData: [TaxPeriodInput], configs: [TaxEstimateResultMap], taxEntity: TaxEntity) -> [TaxSummaryRow] {
     let results = taxResults(from: quarterlyData, taxEntity: taxEntity)
     
     return configs.map { config in

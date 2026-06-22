@@ -11,7 +11,7 @@ import SwiftData
 struct EstimateDrillDown: View {
     let title: String
     let isFederal: Bool
-    let quarterlyData: [QuarterlyInput]
+    let quarterlyData: [TaxPeriodInput]
     
     let federalDrilldownConfigs: [DrilldownRowConfig] = [
         DrilldownRowConfig(displayName: "Interest") { input, _ in input?.interest ?? 0 },
@@ -73,7 +73,7 @@ struct EstimateDrillDown: View {
 
 struct DrilldownRowConfig {
     let displayName: String
-    let extract: (QuarterlyInput?, TaxEstimate?) -> Double
+    let extract: (TaxPeriodInput?, TaxEstimate?) -> Double
 }
 
 struct DrilldownRow: Identifiable {
@@ -86,8 +86,8 @@ struct DrilldownRow: Identifiable {
     var id: String { label }
 }
 
-func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, quarterlyData: [QuarterlyInput]) -> [DrilldownRow] {
-    func data(for quarterID: String) -> (QuarterlyInput?, TaxEstimate?) {
+func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, quarterlyData: [TaxPeriodInput]) -> [DrilldownRow] {
+    func data(for quarterID: String) -> (TaxPeriodInput?, TaxEstimate?) {
         let input = quarterlyData.first { $0.quarterID == quarterID }
         let estimate = input?.taxEstimates.first { $0.taxEntity == taxEntity.rawValue }
         return (input, estimate)

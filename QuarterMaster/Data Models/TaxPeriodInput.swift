@@ -1,5 +1,5 @@
 //
-//  QuarterlyInput.swift
+//  TaxPeriodInput.swift
 //  QuarterMaster
 //
 //  Created by Mark A Stewart on 6/15/26.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class QuarterlyInput {
+final class TaxPeriodInput {
     var quarterID: String = ""
     var pensionAnnuities = 0.0
     var socialSecurity = 0.0
@@ -42,11 +42,11 @@ final class QuarterlyInput {
     }
 }
 
-extension QuarterlyInput {
+extension TaxPeriodInput {
     /// Returns an existing record or creates a new one, ready for population.
-    static func getRecord(for quarterID: String, in context: ModelContext) -> QuarterlyInput {
-        let predicate = #Predicate<QuarterlyInput> { $0.quarterID == quarterID }
-        let descriptor = FetchDescriptor<QuarterlyInput>(predicate: predicate)
+    static func getRecord(for quarterID: String, in context: ModelContext) -> TaxPeriodInput {
+        let predicate = #Predicate<TaxPeriodInput> { $0.quarterID == quarterID }
+        let descriptor = FetchDescriptor<TaxPeriodInput>(predicate: predicate)
         
         do {
             if let existing = try context.fetch(descriptor).first {
@@ -57,7 +57,7 @@ extension QuarterlyInput {
             print("Fetch failed: \(error)")
         }
         
-        let newRecord = QuarterlyInput()
+        let newRecord = TaxPeriodInput()
         newRecord.quarterID = quarterID
         context.insert(newRecord)
         

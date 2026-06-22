@@ -12,7 +12,7 @@ import SwiftData
 struct QuarterMasterApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            QuarterlyInput.self,
+            TaxPeriodInput.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         print("SwiftData Database Location: \(modelConfiguration.url.path)")

@@ -11,7 +11,7 @@ import SwiftData
 @Observable
 class DashboardVM {
     let modelContext: ModelContext
-    var quarterlyData: [QuarterlyInput] = []
+    var quarterlyData: [TaxPeriodInput] = []
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -19,7 +19,7 @@ class DashboardVM {
     }
 
     func fetchData() {
-        let descriptor = FetchDescriptor<QuarterlyInput>(sortBy: [SortDescriptor(\.quarterID)])
+        let descriptor = FetchDescriptor<TaxPeriodInput>(sortBy: [SortDescriptor(\.quarterID)])
         quarterlyData = (try? modelContext.fetch(descriptor)) ?? []
     }
     
@@ -44,7 +44,7 @@ class DashboardVM {
     }
     
     func generateQuarterlyEstimate(for quarter: Quarter, result: Result<[URL], Error>, context: ModelContext) {
-        var quarterlyRecord: QuarterlyInput?
+        var quarterlyRecord: TaxPeriodInput?
         
             // Read and store input data
         switch result {
