@@ -27,7 +27,7 @@ struct StateTaxCalculator {
         stateEstimate.taxesPaid = taxPeriodInput.stateCYEstimates + taxPeriodInput.stateCYWitholding
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (stateEstimate.totalTax * (1 / TaxPeriod.factor(for: taxPeriodInput.periodType))) - stateEstimate.taxesPaid
+        let prorateTaxDue = (stateEstimate.totalTax * (1 / TaxPeriod.factor(for: taxPeriodInput.taxPeriodId))) - stateEstimate.taxesPaid
         stateEstimate.taxEstimate = prorateTaxDue
     }
     

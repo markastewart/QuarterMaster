@@ -77,10 +77,10 @@ func summaryRows(taxPeriodInput: [TaxPeriodInput], configs: [TaxEstimateResultMa
     return configs.map { config in
         TaxSummaryRow(
             label: config.displayName,
-            q1: results.first(where: { $0.taxPeriodInput?.periodType == TaxPeriod.first.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q2: results.first(where: { $0.taxPeriodInput?.periodType == TaxPeriod.second.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q3: results.first(where: { $0.taxPeriodInput?.periodType == TaxPeriod.third.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q4: results.first(where: { $0.taxPeriodInput?.periodType == TaxPeriod.fourth.rawValue })?[keyPath: config.keyPath] ?? 0
+            q1: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.first.rawValue })?[keyPath: config.keyPath] ?? 0,
+            q2: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.second.rawValue })?[keyPath: config.keyPath] ?? 0,
+            q3: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.third.rawValue })?[keyPath: config.keyPath] ?? 0,
+            q4: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.fourth.rawValue })?[keyPath: config.keyPath] ?? 0
         )
     }
 }

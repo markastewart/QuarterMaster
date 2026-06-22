@@ -32,7 +32,7 @@ struct FederalTaxCalculator {
         let quarterlyAdjustedGrossIncome = taxableInterest + ordinaryDividends + iraDistributions + pensionAnnuities + fedEstimate.taxableCapitalGains + additionalIncome
         
             // Social security is already annualized so add it to remainder of annualized AGI.
-        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * TaxPeriod.factor(for: taxPeriodInput.periodType)) + fedEstimate.taxableSocialSecurity
+        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * TaxPeriod.factor(for: taxPeriodInput.taxPeriodId)) + fedEstimate.taxableSocialSecurity
         
         additionalDeductionsCalc(fedEstimate: fedEstimate)
         
@@ -46,7 +46,7 @@ struct FederalTaxCalculator {
         fedEstimate.taxesPaid = taxPeriodInput.fedCYWitholding + taxPeriodInput.fedCYEstimates
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (fedEstimate.totalTax * (1 / TaxPeriod.factor(for: taxPeriodInput.periodType))) - fedEstimate.taxesPaid
+        let prorateTaxDue = (fedEstimate.totalTax * (1 / TaxPeriod.factor(for: taxPeriodInput.taxPeriodId))) - fedEstimate.taxesPaid
         
         fedEstimate.taxEstimate = prorateTaxDue
     }
@@ -57,7 +57,7 @@ struct FederalTaxCalculator {
 
         // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
         
-        guard let periodType = fedEstimate.taxPeriodInput?.periodType else { return }
+        guard let periodType = fedEstimate.taxPeriodInput?.taxPeriodId else { return }
         let annualizedAGI = (taxPeriodInput.pensionAnnuities + taxPeriodInput.ordinaryDividends + taxPeriodInput.otherIncome + taxPeriodInput.interest) * TaxPeriod.factor(for: periodType)
         
         let annualizedSocialSecurity = taxPeriodInput.socialSecurity * TaxPeriod.factor(for: periodType)
