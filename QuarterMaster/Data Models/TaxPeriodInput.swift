@@ -34,7 +34,7 @@ final class TaxPeriodInput {
     var deposit529 = 0.0
     var dividendsNonTaxable = 0.0
     
-    @Relationship(deleteRule: .cascade, inverse: \TaxEstimate.quarterlyInput)
+    @Relationship(deleteRule: .cascade, inverse: \TaxEstimate.taxPeriodInput)
     var taxEstimates: [TaxEstimate] = []
     
     
