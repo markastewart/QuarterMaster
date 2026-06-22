@@ -10,7 +10,7 @@ import SwiftData
 
 struct CSVImportService {
         
-    static func processCSV(content: String, context: ModelContext, quarter: Quarter) -> TaxPeriodInput {
+    static func processCSV(content: String, context: ModelContext, quarter: TaxPeriod) -> TaxPeriodInput {
         var quarterlyRecord = TaxPeriodInput.getRecord(for: quarter.rawValue, in: context)
         
             // Parse input file: split into lines, then by quote-comma-quote (ignoring internal value commas).

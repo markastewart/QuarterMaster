@@ -65,7 +65,7 @@ extension TaxPeriodInput {
     }
 }
 
-enum Quarter: String, CaseIterable, Identifiable, Hashable {
+enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {
     case first = "1Q"
     case second = "2Q"
     case third = "3Q"
@@ -85,6 +85,6 @@ enum Quarter: String, CaseIterable, Identifiable, Hashable {
     
     static func factor(for rawValue: String) -> Double {
             // Returns the factor if found, or 1.0 (or 0.0) as a safe default
-        return Quarter(rawValue: rawValue)?.annualizationFactor ?? 1.0
+        return TaxPeriod(rawValue: rawValue)?.annualizationFactor ?? 1.0
     }
 }

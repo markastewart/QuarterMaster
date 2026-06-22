@@ -32,7 +32,7 @@ struct FederalTaxCalculator {
         let quarterlyAdjustedGrossIncome = taxableInterest + ordinaryDividends + iraDistributions + pensionAnnuities + fedEstimate.taxableCapitalGains + additionalIncome
         
             // Social security is already annualized so add it to remainder of annualized AGI.
-        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * Quarter.factor(for: quarterlyRecord.periodType)) + fedEstimate.taxableSocialSecurity
+        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * TaxPeriod.factor(for: quarterlyRecord.periodType)) + fedEstimate.taxableSocialSecurity
         
         additionalDeductionsCalc(fedEstimate: fedEstimate)
         
@@ -46,7 +46,7 @@ struct FederalTaxCalculator {
         fedEstimate.taxesPaid = quarterlyRecord.fedCYWitholding + quarterlyRecord.fedCYEstimates
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (fedEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.periodType))) - fedEstimate.taxesPaid
+        let prorateTaxDue = (fedEstimate.totalTax * (1 / TaxPeriod.factor(for: quarterlyRecord.periodType))) - fedEstimate.taxesPaid
         
         fedEstimate.taxEstimate = prorateTaxDue
     }
@@ -58,9 +58,9 @@ struct FederalTaxCalculator {
         // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
         
         guard let periodType = fedEstimate.taxPeriodInput?.periodType else { return }
-        let annualizedAGI = (quarterlyRecord.pensionAnnuities + quarterlyRecord.ordinaryDividends + quarterlyRecord.otherIncome + quarterlyRecord.interest) * Quarter.factor(for: periodType)
+        let annualizedAGI = (quarterlyRecord.pensionAnnuities + quarterlyRecord.ordinaryDividends + quarterlyRecord.otherIncome + quarterlyRecord.interest) * TaxPeriod.factor(for: periodType)
         
-        let annualizedSocialSecurity = quarterlyRecord.socialSecurity * Quarter.factor(for: periodType)
+        let annualizedSocialSecurity = quarterlyRecord.socialSecurity * TaxPeriod.factor(for: periodType)
         
         if Int (annualizedAGI) > SeasonalConstants.ssMaxThreshold {
             fedEstimate.taxableSocialSecurity = (annualizedSocialSecurity * 0.85)

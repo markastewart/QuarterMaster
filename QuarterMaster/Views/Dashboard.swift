@@ -13,7 +13,7 @@ struct QuarterMasterDashboard: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
-    @State private var selectedQuarter: Quarter = .first
+    @State private var selectedQuarter: TaxPeriod = .first
     @Query(sort: \TaxPeriodInput.periodType) private var quarterlyData: [TaxPeriodInput]
     
     var body: some View {
@@ -68,7 +68,7 @@ struct QuarterMasterDashboard: View {
                 Text("Select Quarter to estimate and Import source file").font(.caption.bold()).foregroundStyle(.secondary)
                 
                 Picker("Quarter", selection: $selectedQuarter) {
-                    ForEach(Quarter.allCases) { q in Text(q.rawValue).tag(q) }
+                    ForEach(TaxPeriod.allCases) { q in Text(q.rawValue).tag(q) }
                 }
                 .pickerStyle(.segmented)
                 

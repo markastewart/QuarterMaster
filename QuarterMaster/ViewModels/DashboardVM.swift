@@ -43,7 +43,7 @@ class DashboardVM {
         var id: String { label }
     }
     
-    func generateQuarterlyEstimate(for quarter: Quarter, result: Result<[URL], Error>, context: ModelContext) {
+    func generateQuarterlyEstimate(for quarter: TaxPeriod, result: Result<[URL], Error>, context: ModelContext) {
         var quarterlyRecord: TaxPeriodInput?
         
             // Read and store input data

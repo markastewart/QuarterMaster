@@ -93,10 +93,10 @@ func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, quarterl
         return (input, estimate)
     }
     
-    let q1Data = data(for: Quarter.first.rawValue)
-    let q2Data = data(for: Quarter.second.rawValue)
-    let q3Data = data(for: Quarter.third.rawValue)
-    let q4Data = data(for: Quarter.fourth.rawValue)
+    let q1Data = data(for: TaxPeriod.first.rawValue)
+    let q2Data = data(for: TaxPeriod.second.rawValue)
+    let q3Data = data(for: TaxPeriod.third.rawValue)
+    let q4Data = data(for: TaxPeriod.fourth.rawValue)
     
     return configs.map { config in
         DrilldownRow(
