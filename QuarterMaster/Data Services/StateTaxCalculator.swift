@@ -9,19 +9,12 @@ import Foundation
 
 struct StateTaxCalculator {
     
-    static func calculateStateEstimate(quarterlyRecord: TaxPeriodInput, fedEstimate: TaxEstimate) {
-        let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, taxPeriodInput: quarterlyRecord)
-        
-//        guard let fedEstimate = quarterlyRecord.taxEstimates.first(where: {
-//            $0.taxPeriodInput?.periodType == quarterlyRecord.periodType
-//        }) else {
-//            print("No federal estimate found for \(quarterlyRecord.periodType)")
-//            return
-//        }
+    static func calculateStateEstimate(taxPeriodInput: TaxPeriodInput, fedEstimate: TaxEstimate) {
+        let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, taxPeriodInput: taxPeriodInput)
         
         stateEstimate.fedAGI = fedEstimate.adjustedGrossIncome
-        stateEstimate.incomeAdditions = calculateAdditions(quarterlyResults: quarterlyRecord)
-        stateEstimate.totalDeductions = calculateDeductions (quarterlyResults: quarterlyRecord, fedResults: fedEstimate)
+        stateEstimate.incomeAdditions = calculateAdditions(taxPeriodInput: taxPeriodInput)
+        stateEstimate.totalDeductions = calculateDeductions (taxPeriodInput: taxPeriodInput, fedResults: fedEstimate)
         stateEstimate.adjustedGrossIncome = stateEstimate.fedAGI + stateEstimate.incomeAdditions - stateEstimate.totalDeductions
         
         let exemptions = SeasonalConstants.stateExemption * 2
@@ -31,20 +24,20 @@ struct StateTaxCalculator {
         let credits = calculateCredits(taxLiability: stateEstimate.totalTax, taxableIncome: stateEstimate.taxableIncome)
         stateEstimate.totalTax -= credits
         
-        stateEstimate.taxesPaid = quarterlyRecord.stateCYEstimates + quarterlyRecord.stateCYWitholding
+        stateEstimate.taxesPaid = taxPeriodInput.stateCYEstimates + taxPeriodInput.stateCYWitholding
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (stateEstimate.totalTax * (1 / TaxPeriod.factor(for: quarterlyRecord.periodType))) - stateEstimate.taxesPaid
+        let prorateTaxDue = (stateEstimate.totalTax * (1 / TaxPeriod.factor(for: taxPeriodInput.periodType))) - stateEstimate.taxesPaid
         stateEstimate.taxEstimate = prorateTaxDue
     }
     
-    static func calculateAdditions(quarterlyResults: TaxPeriodInput) -> Double {
-        let additions = quarterlyResults.dividendsNonTaxable * SeasonalConstants.nonTaxDividendsFactor
+    static func calculateAdditions(taxPeriodInput: TaxPeriodInput) -> Double {
+        let additions = taxPeriodInput.dividendsNonTaxable * SeasonalConstants.nonTaxDividendsFactor
         return additions
     }
     
-    static func calculateDeductions(quarterlyResults: TaxPeriodInput, fedResults: TaxEstimate) -> Double {
-        let deductions = fedResults.taxableSocialSecurity + quarterlyResults.deposit529
+    static func calculateDeductions(taxPeriodInput: TaxPeriodInput, fedResults: TaxEstimate) -> Double {
+        let deductions = fedResults.taxableSocialSecurity + taxPeriodInput.deposit529
         return deductions
     }
     

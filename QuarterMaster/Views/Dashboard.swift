@@ -14,7 +14,7 @@ struct QuarterMasterDashboard: View {
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
     @State private var selectedQuarter: TaxPeriod = .first
-    @Query(sort: \TaxPeriodInput.periodType) private var quarterlyData: [TaxPeriodInput]
+    @Query(sort: \TaxPeriodInput.periodType) private var taxPeriodInput: [TaxPeriodInput]
     
     var body: some View {
         NavigationStack() {
@@ -27,18 +27,18 @@ struct QuarterMasterDashboard: View {
                     Divider()
                     
                     VStack(spacing: 20) {
-                        EstimateSummary(title: "Federal Tax Estimates", isFederal: true, quarterlyData: quarterlyData)
+                        EstimateSummary(title: "Federal Tax Estimates", isFederal: true, taxPeriodInput: taxPeriodInput)
                         Divider()
-                        EstimateSummary(title: "State Tax Estimates", isFederal: false, quarterlyData: quarterlyData)
+                        EstimateSummary(title: "State Tax Estimates", isFederal: false, taxPeriodInput: taxPeriodInput)
                     }
                     .padding()
                 }
                 .navigationTitle("")
-                .onChange(of: quarterlyData) { _, newValue in
-                    vm.quarterlyData = newValue
+                .onChange(of: taxPeriodInput) { _, newValue in
+                    vm.taxPeriodInput = newValue
                 }
                 .onAppear {
-                    vm.quarterlyData = quarterlyData
+                    vm.taxPeriodInput = taxPeriodInput
                 }
             }
         }

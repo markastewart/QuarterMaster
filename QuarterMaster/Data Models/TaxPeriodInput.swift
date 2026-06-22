@@ -44,8 +44,8 @@ final class TaxPeriodInput {
 
 extension TaxPeriodInput {
     /// Returns an existing record or creates a new one, ready for population.
-    static func getRecord(for quarterID: String, in context: ModelContext) -> TaxPeriodInput {
-        let predicate = #Predicate<TaxPeriodInput> { $0.periodType == quarterID }
+    static func getRecord(for taxPeriod: String, in context: ModelContext) -> TaxPeriodInput {
+        let predicate = #Predicate<TaxPeriodInput> { $0.periodType == taxPeriod }
         let descriptor = FetchDescriptor<TaxPeriodInput>(predicate: predicate)
         
         do {
@@ -58,7 +58,7 @@ extension TaxPeriodInput {
         }
         
         let newRecord = TaxPeriodInput()
-        newRecord.periodType = quarterID
+        newRecord.periodType = taxPeriod
         context.insert(newRecord)
         
         return newRecord

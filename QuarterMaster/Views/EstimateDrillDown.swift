@@ -11,7 +11,7 @@ import SwiftData
 struct EstimateDrillDown: View {
     let title: String
     let isFederal: Bool
-    let quarterlyData: [TaxPeriodInput]
+    let taxPeriodInput: [TaxPeriodInput]
     
     let federalDrilldownConfigs: [DrilldownRowConfig] = [
         DrilldownRowConfig(displayName: "Interest") { input, _ in input?.interest ?? 0 },
@@ -46,7 +46,7 @@ struct EstimateDrillDown: View {
             let entity = isFederal ? TaxEntity.federal : TaxEntity.state
             let drilldownConfigs = isFederal ? federalDrilldownConfigs : stateDrilldownConfigs
             
-        let rows = drilldownRows(configs: drilldownConfigs, taxEntity: entity, quarterlyData: quarterlyData)
+        let rows = drilldownRows(configs: drilldownConfigs, taxEntity: entity, taxPeriodInput: taxPeriodInput)
             
             VStack {
                 Table(rows) {
@@ -86,9 +86,9 @@ struct DrilldownRow: Identifiable {
     var id: String { label }
 }
 
-func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, quarterlyData: [TaxPeriodInput]) -> [DrilldownRow] {
-    func data(for quarterID: String) -> (TaxPeriodInput?, TaxEstimate?) {
-        let input = quarterlyData.first { $0.periodType == quarterID }
+func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, taxPeriodInput: [TaxPeriodInput]) -> [DrilldownRow] {
+    func data(for taxPeriod: String) -> (TaxPeriodInput?, TaxEstimate?) {
+        let input = taxPeriodInput.first { $0.periodType == taxPeriod }
         let estimate = input?.taxEstimates.first { $0.taxEntity == taxEntity.rawValue }
         return (input, estimate)
     }

@@ -11,7 +11,7 @@ import SwiftData
 @Observable
 class DashboardVM {
     let modelContext: ModelContext
-    var quarterlyData: [TaxPeriodInput] = []
+    var taxPeriodInput: [TaxPeriodInput] = []
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -20,16 +20,16 @@ class DashboardVM {
 
     func fetchData() {
         let descriptor = FetchDescriptor<TaxPeriodInput>(sortBy: [SortDescriptor(\.periodType)])
-        quarterlyData = (try? modelContext.fetch(descriptor)) ?? []
+        taxPeriodInput = (try? modelContext.fetch(descriptor)) ?? []
     }
     
     var federalTaxResults: [TaxEstimate] {
-        quarterlyData.flatMap { $0.taxEstimates }
+        taxPeriodInput.flatMap { $0.taxEstimates }
                 .filter { $0.taxEntity == TaxEntity.federal.rawValue }
     }
     
     var stateTaxResults: [TaxEstimate] {
-        quarterlyData.flatMap { $0.taxEstimates }
+        taxPeriodInput.flatMap { $0.taxEstimates }
                 .filter { $0.taxEntity == TaxEntity.state.rawValue }
     }
     
@@ -43,8 +43,8 @@ class DashboardVM {
         var id: String { label }
     }
     
-    func generateQuarterlyEstimate(for quarter: TaxPeriod, result: Result<[URL], Error>, context: ModelContext) {
-        var quarterlyRecord: TaxPeriodInput?
+    func generateQuarterlyEstimate(for taxPeriod: TaxPeriod, result: Result<[URL], Error>, context: ModelContext) {
+        var taxPeriodInput: TaxPeriodInput?
         
             // Read and store input data
         switch result {
@@ -57,21 +57,21 @@ class DashboardVM {
                 let content = try? String(contentsOf: url, encoding: .utf8)
                 guard let inputRecord = content else { return }
                 
-                quarterlyRecord = CSVImportService.processCSV(content: inputRecord, context: modelContext, quarter: quarter)
+                taxPeriodInput = CSVImportService.processCSV(content: inputRecord, context: modelContext, taxPeriod: taxPeriod)
                 
             case .failure(let error):
-                print("Failed to read and process input data for the quarter: \(error.localizedDescription)")
+                print("Failed to read and process input data for the tax period: \(error.localizedDescription)")
         }
         
             // Verifying an input record is available, post-process the inputs and calculate Federal and State tax estimates.
-        if let quarterlyRec = quarterlyRecord {
+        if let taxPeriodRec = taxPeriodInput {
             
-            DataCurator.curateData(quarterlyRecord: quarterlyRec)
+            DataCurator.curateData(taxPeriodInput: taxPeriodRec)
             
-            FederalTaxCalculator.calculateFederalEstimate(quarterlyRecord: quarterlyRec)
+            FederalTaxCalculator.calculateFederalEstimate(taxPeriodInput: taxPeriodRec)
             
-            if let fedTaxEstimate = quarterlyRec.taxEstimates.first(where: { $0.taxEntity == TaxEntity.federal.rawValue}) {
-                StateTaxCalculator.calculateStateEstimate(quarterlyRecord: quarterlyRec, fedEstimate: fedTaxEstimate)
+            if let fedTaxEstimate = taxPeriodRec.taxEstimates.first(where: { $0.taxEntity == TaxEntity.federal.rawValue}) {
+                StateTaxCalculator.calculateStateEstimate(taxPeriodInput: taxPeriodRec, fedEstimate: fedTaxEstimate)
             }
         }
         try? context.save()

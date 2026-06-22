@@ -11,7 +11,7 @@ import SwiftData
 struct EstimateSummary: View {
     let title: String
     let isFederal: Bool
-    let quarterlyData: [TaxPeriodInput]
+    let taxPeriodInput: [TaxPeriodInput]
     
     @State private var selectedRowID: String?
     @State private var showDrillDown = false
@@ -28,7 +28,7 @@ struct EstimateSummary: View {
             Text(title).font(.headline).padding(.bottom, 4)
             
             let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
-            let rows = summaryRows(quarterlyData: quarterlyData, configs: taxDisplayConfigs, taxEntity: taxEntity)
+            let rows = summaryRows(taxPeriodInput: taxPeriodInput, configs: taxDisplayConfigs, taxEntity: taxEntity)
             
             Table(rows, selection: $selectedRowID) {
                 TableColumn("") { Text($0.label).bold() }.width(min: 200)
@@ -41,7 +41,7 @@ struct EstimateSummary: View {
                 if newValue != nil { showDrillDown = true }
             }
             .navigationDestination(isPresented: $showDrillDown) {
-                EstimateDrillDown(title: taxEntity.rawValue, isFederal: isFederal,quarterlyData: quarterlyData)
+                EstimateDrillDown(title: taxEntity.rawValue, isFederal: isFederal,taxPeriodInput: taxPeriodInput)
             }
             .frame(height: CGFloat(rows.count) * 28 + 30)
         }
@@ -65,14 +65,14 @@ struct TaxSummaryRow: Identifiable, Hashable {
     var id: String { label }
 }
 
-func taxResults(from quarterlyData: [TaxPeriodInput], taxEntity: TaxEntity) -> [TaxEstimate] {
-    quarterlyData
+func taxResults(from taxPeriodInput: [TaxPeriodInput], taxEntity: TaxEntity) -> [TaxEstimate] {
+    taxPeriodInput
         .flatMap { $0.taxEstimates }
         .filter { $0.taxEntity == taxEntity.rawValue }
 }
 
-func summaryRows(quarterlyData: [TaxPeriodInput], configs: [TaxEstimateResultMap], taxEntity: TaxEntity) -> [TaxSummaryRow] {
-    let results = taxResults(from: quarterlyData, taxEntity: taxEntity)
+func summaryRows(taxPeriodInput: [TaxPeriodInput], configs: [TaxEstimateResultMap], taxEntity: TaxEntity) -> [TaxSummaryRow] {
+    let results = taxResults(from: taxPeriodInput, taxEntity: taxEntity)
     
     return configs.map { config in
         TaxSummaryRow(

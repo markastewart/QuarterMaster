@@ -10,8 +10,8 @@ import SwiftData
 
 struct CSVImportService {
         
-    static func processCSV(content: String, context: ModelContext, quarter: TaxPeriod) -> TaxPeriodInput {
-        var quarterlyRecord = TaxPeriodInput.getRecord(for: quarter.rawValue, in: context)
+    static func processCSV(content: String, context: ModelContext, taxPeriod: TaxPeriod) -> TaxPeriodInput {
+        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, in: context)
         
             // Parse input file: split into lines, then by quote-comma-quote (ignoring internal value commas).
         let rows = content.components(separatedBy: .newlines)
@@ -36,7 +36,7 @@ struct CSVImportService {
                 
                     // Convert to Double and Save via KeyPath
                 if let doubleValue = Double(cleanedValue) {
-                    quarterlyRecord[keyPath: category.keyPath] = doubleValue
+                    taxPeriodInput[keyPath: category.keyPath] = doubleValue
                 } else {
                     print("Could not convert value '\(rawValue)' to Double for \(rawLabel)")
                 }
@@ -44,6 +44,6 @@ struct CSVImportService {
         }
         try? context.save()
         
-        return quarterlyRecord
+        return taxPeriodInput
     }
 }

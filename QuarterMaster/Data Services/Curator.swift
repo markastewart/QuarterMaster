@@ -9,30 +9,30 @@ import Foundation
 
 struct DataCurator {
 
-    static func curateData(quarterlyRecord: TaxPeriodInput) {
+    static func curateData(taxPeriodInput: TaxPeriodInput) {
         
             // Aggregate other income parts to a single value for other income.
         let otherIncomeFields: [EstimateValues] = [.oilRoyalties, .supplementalIncome]
         
         var calculatedOtherIncome = 00.0
         for field in otherIncomeFields {
-            calculatedOtherIncome = calculatedOtherIncome + quarterlyRecord[keyPath: field.keyPath]
+            calculatedOtherIncome = calculatedOtherIncome + taxPeriodInput[keyPath: field.keyPath]
         }
-        quarterlyRecord.otherIncome = calculatedOtherIncome
+        taxPeriodInput.otherIncome = calculatedOtherIncome
         
             // Use factor to estimate Qualified Dividends from sum of Qualified Eligible Dividends & Short-term Capital Gain/Reinvest STCG
-        quarterlyRecord.qualifiedDividends = (quarterlyRecord.qualifiedEligibleDividends + quarterlyRecord.shortTermCG +  quarterlyRecord.reinvestSTCG) * SeasonalConstants.qualifiedDividendsFactor
+        taxPeriodInput.qualifiedDividends = (taxPeriodInput.qualifiedEligibleDividends + taxPeriodInput.shortTermCG +  taxPeriodInput.reinvestSTCG) * SeasonalConstants.qualifiedDividendsFactor
         
             // Add Qualified Eligible Dividends to Ordinary Dividends to use for tax calc.
-        quarterlyRecord.ordinaryDividends += quarterlyRecord.qualifiedEligibleDividends
+        taxPeriodInput.ordinaryDividends += taxPeriodInput.qualifiedEligibleDividends
         
             // Add Reinvest Long-term CG to Capital Gain Distribution
-        quarterlyRecord.capitalGainDistribution += quarterlyRecord.reinvestLTCG
+        taxPeriodInput.capitalGainDistribution += taxPeriodInput.reinvestLTCG
         
             // Remove leading negative sign from Federal and State witholdings and estimates.
-        quarterlyRecord.fedCYEstimates = quarterlyRecord.fedCYEstimates * -1
-        quarterlyRecord.stateCYEstimates = quarterlyRecord.stateCYEstimates * -1
-        quarterlyRecord.fedCYWitholding = quarterlyRecord.fedCYWitholding * -1
-        quarterlyRecord.stateCYWitholding = quarterlyRecord.stateCYWitholding * -1
+        taxPeriodInput.fedCYEstimates = taxPeriodInput.fedCYEstimates * -1
+        taxPeriodInput.stateCYEstimates = taxPeriodInput.stateCYEstimates * -1
+        taxPeriodInput.fedCYWitholding = taxPeriodInput.fedCYWitholding * -1
+        taxPeriodInput.stateCYWitholding = taxPeriodInput.stateCYWitholding * -1
     }
 }

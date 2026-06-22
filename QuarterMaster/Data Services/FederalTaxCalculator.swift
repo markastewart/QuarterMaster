@@ -9,30 +9,30 @@ import Foundation
 
 struct FederalTaxCalculator {
     
-    static func calculateFederalEstimate(quarterlyRecord: TaxPeriodInput) {
-        let fedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: quarterlyRecord)
+    static func calculateFederalEstimate(taxPeriodInput: TaxPeriodInput) {
+        let fedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: taxPeriodInput)
         
-        let taxableInterest = quarterlyRecord.interest
+        let taxableInterest = taxPeriodInput.interest
         
-        let ordinaryDividends = quarterlyRecord.ordinaryDividends
+        let ordinaryDividends = taxPeriodInput.ordinaryDividends
         
-        let iraDistributions = quarterlyRecord.iraDistributions
+        let iraDistributions = taxPeriodInput.iraDistributions
         
-        let pensionAnnuities = quarterlyRecord.pensionAnnuities
+        let pensionAnnuities = taxPeriodInput.pensionAnnuities
         
             // Calculate Taxable Social Security
-        taxableSocialSecurityCalc(fedEstimate: fedEstimate, quarterlyRecord: quarterlyRecord)
+        taxableSocialSecurityCalc(fedEstimate: fedEstimate, taxPeriodInput: taxPeriodInput)
         
             // Calculate Taxable Capital Gains
-        taxableCapitalGainsCalc(quarterlyRecord: quarterlyRecord, fedEstimate: fedEstimate)
+        taxableCapitalGainsCalc(taxPeriodInput: taxPeriodInput, fedEstimate: fedEstimate)
         
-        let additionalIncome = quarterlyRecord.otherIncome
+        let additionalIncome = taxPeriodInput.otherIncome
         
             // Calculate federal AGI
         let quarterlyAdjustedGrossIncome = taxableInterest + ordinaryDividends + iraDistributions + pensionAnnuities + fedEstimate.taxableCapitalGains + additionalIncome
         
             // Social security is already annualized so add it to remainder of annualized AGI.
-        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * TaxPeriod.factor(for: quarterlyRecord.periodType)) + fedEstimate.taxableSocialSecurity
+        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * TaxPeriod.factor(for: taxPeriodInput.periodType)) + fedEstimate.taxableSocialSecurity
         
         additionalDeductionsCalc(fedEstimate: fedEstimate)
         
@@ -41,26 +41,26 @@ struct FederalTaxCalculator {
         
         fedEstimate.taxableIncome = fedEstimate.adjustedGrossIncome - fedEstimate.totalDeductions
         
-        fedEstimate.totalTax = annualTaxCalc(quarterlyRec: quarterlyRecord, fedEstimate: fedEstimate) - SeasonalConstants.foreignTaxPaid
+        fedEstimate.totalTax = annualTaxCalc(taxPeriodInput: taxPeriodInput, fedEstimate: fedEstimate) - SeasonalConstants.foreignTaxPaid
         
-        fedEstimate.taxesPaid = quarterlyRecord.fedCYWitholding + quarterlyRecord.fedCYEstimates
+        fedEstimate.taxesPaid = taxPeriodInput.fedCYWitholding + taxPeriodInput.fedCYEstimates
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (fedEstimate.totalTax * (1 / TaxPeriod.factor(for: quarterlyRecord.periodType))) - fedEstimate.taxesPaid
+        let prorateTaxDue = (fedEstimate.totalTax * (1 / TaxPeriod.factor(for: taxPeriodInput.periodType))) - fedEstimate.taxesPaid
         
         fedEstimate.taxEstimate = prorateTaxDue
     }
     
     
         // taxableSocialSecurityCalc - Calculate taxable social security for estimate.
-    static func taxableSocialSecurityCalc(fedEstimate: TaxEstimate, quarterlyRecord: TaxPeriodInput) {
+    static func taxableSocialSecurityCalc(fedEstimate: TaxEstimate, taxPeriodInput: TaxPeriodInput) {
 
         // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
         
         guard let periodType = fedEstimate.taxPeriodInput?.periodType else { return }
-        let annualizedAGI = (quarterlyRecord.pensionAnnuities + quarterlyRecord.ordinaryDividends + quarterlyRecord.otherIncome + quarterlyRecord.interest) * TaxPeriod.factor(for: periodType)
+        let annualizedAGI = (taxPeriodInput.pensionAnnuities + taxPeriodInput.ordinaryDividends + taxPeriodInput.otherIncome + taxPeriodInput.interest) * TaxPeriod.factor(for: periodType)
         
-        let annualizedSocialSecurity = quarterlyRecord.socialSecurity * TaxPeriod.factor(for: periodType)
+        let annualizedSocialSecurity = taxPeriodInput.socialSecurity * TaxPeriod.factor(for: periodType)
         
         if Int (annualizedAGI) > SeasonalConstants.ssMaxThreshold {
             fedEstimate.taxableSocialSecurity = (annualizedSocialSecurity * 0.85)
@@ -75,9 +75,9 @@ struct FederalTaxCalculator {
     }
     
     
-    static func taxableCapitalGainsCalc(quarterlyRecord: TaxPeriodInput, fedEstimate: TaxEstimate) {
+    static func taxableCapitalGainsCalc(taxPeriodInput: TaxPeriodInput, fedEstimate: TaxEstimate) {
         
-        fedEstimate.taxableCapitalGains = quarterlyRecord.shortTermCG + quarterlyRecord.longTermGain + quarterlyRecord.capitalGainDistribution
+        fedEstimate.taxableCapitalGains = taxPeriodInput.shortTermCG + taxPeriodInput.longTermGain + taxPeriodInput.capitalGainDistribution
     }
     
     static func additionalDeductionsCalc(fedEstimate: TaxEstimate) {
@@ -90,9 +90,9 @@ struct FederalTaxCalculator {
     }
     
     
-    static func annualTaxCalc(quarterlyRec: TaxPeriodInput, fedEstimate: TaxEstimate) -> Double {
+    static func annualTaxCalc(taxPeriodInput: TaxPeriodInput, fedEstimate: TaxEstimate) -> Double {
         
-        let taxableGains = quarterlyRec.qualifiedDividends + quarterlyRec.capitalGainDistribution + quarterlyRec.longTermGain
+        let taxableGains = taxPeriodInput.qualifiedDividends + taxPeriodInput.capitalGainDistribution + taxPeriodInput.longTermGain
         
         let ordinaryIncome = fedEstimate.taxableIncome - taxableGains
         
