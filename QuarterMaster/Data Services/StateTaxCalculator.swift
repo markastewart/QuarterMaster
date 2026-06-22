@@ -32,7 +32,10 @@ struct StateTaxCalculator {
         stateEstimate.totalTax -= credits
         
         stateEstimate.taxesPaid = quarterlyRecord.stateCYEstimates + quarterlyRecord.stateCYWitholding
-        stateEstimate.taxEstimate = stateEstimate.totalTax - stateEstimate.taxesPaid
+        
+            // Proprate tax due pay YTD
+        let prorateTaxDue = (stateEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.quarterID))) - stateEstimate.taxesPaid
+        stateEstimate.taxEstimate = prorateTaxDue
     }
     
     static func calculateAdditions(quarterlyResults: QuarterlyInput) -> Double {
