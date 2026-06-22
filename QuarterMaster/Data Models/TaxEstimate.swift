@@ -29,7 +29,7 @@ final class TaxEstimate {
     init(taxEntity: String, quarterlyInput: TaxPeriodInput) {
         self.taxEntity = taxEntity
         self.quarterlyInput = quarterlyInput
-        self.quarterID = quarterlyInput.quarterID
+        self.quarterID = quarterlyInput.periodType
     }
 }
 

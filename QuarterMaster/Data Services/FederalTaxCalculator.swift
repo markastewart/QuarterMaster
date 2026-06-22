@@ -32,7 +32,7 @@ struct FederalTaxCalculator {
         let quarterlyAdjustedGrossIncome = taxableInterest + ordinaryDividends + iraDistributions + pensionAnnuities + fedEstimate.taxableCapitalGains + additionalIncome
         
             // Social security is already annualized so add it to remainder of annualized AGI.
-        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * Quarter.factor(for: quarterlyRecord.quarterID)) + fedEstimate.taxableSocialSecurity
+        fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * Quarter.factor(for: quarterlyRecord.periodType)) + fedEstimate.taxableSocialSecurity
         
         additionalDeductionsCalc(fedEstimate: fedEstimate)
         
@@ -46,7 +46,7 @@ struct FederalTaxCalculator {
         fedEstimate.taxesPaid = quarterlyRecord.fedCYWitholding + quarterlyRecord.fedCYEstimates
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (fedEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.quarterID))) - fedEstimate.taxesPaid
+        let prorateTaxDue = (fedEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.periodType))) - fedEstimate.taxesPaid
         
         fedEstimate.taxEstimate = prorateTaxDue
     }

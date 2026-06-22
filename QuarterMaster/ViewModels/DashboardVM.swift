@@ -19,7 +19,7 @@ class DashboardVM {
     }
 
     func fetchData() {
-        let descriptor = FetchDescriptor<TaxPeriodInput>(sortBy: [SortDescriptor(\.quarterID)])
+        let descriptor = FetchDescriptor<TaxPeriodInput>(sortBy: [SortDescriptor(\.periodType)])
         quarterlyData = (try? modelContext.fetch(descriptor)) ?? []
     }
     

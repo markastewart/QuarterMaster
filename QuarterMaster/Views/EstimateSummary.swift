@@ -77,10 +77,10 @@ func summaryRows(quarterlyData: [TaxPeriodInput], configs: [TaxEstimateResultMap
     return configs.map { config in
         TaxSummaryRow(
             label: config.displayName,
-            q1: results.first(where: { $0.quarterlyInput?.quarterID == Quarter.first.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q2: results.first(where: { $0.quarterlyInput?.quarterID == Quarter.second.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q3: results.first(where: { $0.quarterlyInput?.quarterID == Quarter.third.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q4: results.first(where: { $0.quarterlyInput?.quarterID == Quarter.fourth.rawValue })?[keyPath: config.keyPath] ?? 0
+            q1: results.first(where: { $0.quarterlyInput?.periodType == Quarter.first.rawValue })?[keyPath: config.keyPath] ?? 0,
+            q2: results.first(where: { $0.quarterlyInput?.periodType == Quarter.second.rawValue })?[keyPath: config.keyPath] ?? 0,
+            q3: results.first(where: { $0.quarterlyInput?.periodType == Quarter.third.rawValue })?[keyPath: config.keyPath] ?? 0,
+            q4: results.first(where: { $0.quarterlyInput?.periodType == Quarter.fourth.rawValue })?[keyPath: config.keyPath] ?? 0
         )
     }
 }

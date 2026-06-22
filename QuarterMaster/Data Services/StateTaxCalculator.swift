@@ -13,9 +13,9 @@ struct StateTaxCalculator {
         let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, quarterlyInput: quarterlyRecord)
         
         guard let fedEstimate = quarterlyRecord.taxEstimates.first(where: {
-            $0.quarterID == quarterlyRecord.quarterID
+            $0.quarterID == quarterlyRecord.periodType
         }) else {
-            print("No federal estimate found for \(quarterlyRecord.quarterID)")
+            print("No federal estimate found for \(quarterlyRecord.periodType)")
             return
         }
         
@@ -34,7 +34,7 @@ struct StateTaxCalculator {
         stateEstimate.taxesPaid = quarterlyRecord.stateCYEstimates + quarterlyRecord.stateCYWitholding
         
             // Proprate tax due pay YTD
-        let prorateTaxDue = (stateEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.quarterID))) - stateEstimate.taxesPaid
+        let prorateTaxDue = (stateEstimate.totalTax * (1 / Quarter.factor(for: quarterlyRecord.periodType))) - stateEstimate.taxesPaid
         stateEstimate.taxEstimate = prorateTaxDue
     }
     

@@ -88,7 +88,7 @@ struct DrilldownRow: Identifiable {
 
 func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, quarterlyData: [TaxPeriodInput]) -> [DrilldownRow] {
     func data(for quarterID: String) -> (TaxPeriodInput?, TaxEstimate?) {
-        let input = quarterlyData.first { $0.quarterID == quarterID }
+        let input = quarterlyData.first { $0.periodType == quarterID }
         let estimate = input?.taxEstimates.first { $0.taxEntity == taxEntity.rawValue }
         return (input, estimate)
     }
