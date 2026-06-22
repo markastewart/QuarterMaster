@@ -88,3 +88,10 @@ enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {
         return TaxPeriod(rawValue: rawValue)?.annualizationFactor ?? 1.0
     }
 }
+
+enum TaxCycle: Int, CaseIterable, Identifiable, Hashable {
+    case quarterly
+    case annual
+    
+    var id: Int {self.rawValue}
+}
