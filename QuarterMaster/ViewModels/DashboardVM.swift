@@ -70,7 +70,9 @@ class DashboardVM {
             
             FederalTaxCalculator.calculateFederalEstimate(quarterlyRecord: quarterlyRec)
             
-            StateTaxCalculator.calculateStateEstimate(quarterlyRecord: quarterlyRec, fedTaxResults: federalTaxResults)
+            if let fedTaxEstimate = quarterlyRec.taxEstimates.first(where: { $0.taxEntity == TaxEntity.federal.rawValue}) {
+                StateTaxCalculator.calculateStateEstimate(quarterlyRecord: quarterlyRec, fedEstimate: fedTaxEstimate)
+            }
         }
         try? context.save()
     }

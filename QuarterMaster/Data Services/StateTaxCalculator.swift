@@ -9,15 +9,15 @@ import Foundation
 
 struct StateTaxCalculator {
     
-    static func calculateStateEstimate(quarterlyRecord: TaxPeriodInput, fedTaxResults: [TaxEstimate]) {
-        let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, quarterlyInput: quarterlyRecord)
+    static func calculateStateEstimate(quarterlyRecord: TaxPeriodInput, fedEstimate: TaxEstimate) {
+        let stateEstimate = TaxEstimate(taxEntity: TaxEntity.state.rawValue, taxPeriodInput: quarterlyRecord)
         
-        guard let fedEstimate = quarterlyRecord.taxEstimates.first(where: {
-            $0.quarterID == quarterlyRecord.periodType
-        }) else {
-            print("No federal estimate found for \(quarterlyRecord.periodType)")
-            return
-        }
+//        guard let fedEstimate = quarterlyRecord.taxEstimates.first(where: {
+//            $0.taxPeriodInput?.periodType == quarterlyRecord.periodType
+//        }) else {
+//            print("No federal estimate found for \(quarterlyRecord.periodType)")
+//            return
+//        }
         
         stateEstimate.fedAGI = fedEstimate.adjustedGrossIncome
         stateEstimate.incomeAdditions = calculateAdditions(quarterlyResults: quarterlyRecord)

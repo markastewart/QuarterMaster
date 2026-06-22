@@ -10,7 +10,6 @@ import SwiftData
 
 @Model
 final class TaxEstimate {
-    var quarterID: String = ""
     var taxEntity: String = ""
     var taxableSocialSecurity = 0.0
     var adjustedGrossIncome = 0.0
@@ -26,10 +25,9 @@ final class TaxEstimate {
     
     var taxPeriodInput: TaxPeriodInput?
         
-    init(taxEntity: String, quarterlyInput: TaxPeriodInput) {
+    init(taxEntity: String, taxPeriodInput: TaxPeriodInput) {
         self.taxEntity = taxEntity
-        self.taxPeriodInput = quarterlyInput
-        self.quarterID = quarterlyInput.periodType
+        self.taxPeriodInput = taxPeriodInput
     }
 }
 

@@ -10,7 +10,7 @@ import Foundation
 struct FederalTaxCalculator {
     
     static func calculateFederalEstimate(quarterlyRecord: TaxPeriodInput) {
-        let fedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, quarterlyInput: quarterlyRecord)
+        let fedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: quarterlyRecord)
         
         let taxableInterest = quarterlyRecord.interest
         
@@ -57,9 +57,10 @@ struct FederalTaxCalculator {
 
         // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
         
-        let annualizedAGI = (quarterlyRecord.pensionAnnuities + quarterlyRecord.ordinaryDividends + quarterlyRecord.otherIncome + quarterlyRecord.interest) * Quarter.factor(for: fedEstimate.quarterID)
+        guard let periodType = fedEstimate.taxPeriodInput?.periodType else { return }
+        let annualizedAGI = (quarterlyRecord.pensionAnnuities + quarterlyRecord.ordinaryDividends + quarterlyRecord.otherIncome + quarterlyRecord.interest) * Quarter.factor(for: periodType)
         
-        let annualizedSocialSecurity = quarterlyRecord.socialSecurity * Quarter.factor(for: fedEstimate.quarterID)
+        let annualizedSocialSecurity = quarterlyRecord.socialSecurity * Quarter.factor(for: periodType)
         
         if Int (annualizedAGI) > SeasonalConstants.ssMaxThreshold {
             fedEstimate.taxableSocialSecurity = (annualizedSocialSecurity * 0.85)
