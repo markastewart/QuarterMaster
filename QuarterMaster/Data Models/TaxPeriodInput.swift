@@ -44,13 +44,14 @@ final class TaxPeriodInput {
 }
 
 extension TaxPeriodInput {
-    /// Returns an existing record or creates a new one, ready for population.
+        /// Returns an existing record or creates a new one, ready for population.
     static func getRecord(for taxPeriod: String, taxCycle: TaxCycle, in context: ModelContext) -> TaxPeriodInput {
-        let predicate = #Predicate<TaxPeriodInput> { $0.taxPeriodId == taxPeriod }
-        let descriptor = FetchDescriptor<TaxPeriodInput>(predicate: predicate)
         
+            // Fetch all records, filter in memory — avoids the predicate enum bug. If record found, delete it and create a new one. If no record, then just create a new one.
+        let descriptor = FetchDescriptor<TaxPeriodInput>()
         do {
-            if let existing = try context.fetch(descriptor).first {
+            let all = try context.fetch(descriptor)
+            if let existing = all.first(where: { $0.taxCycle == taxCycle && $0.taxPeriodId == taxPeriod }) {
                 context.delete(existing)
                 try? context.save()
             }
@@ -62,7 +63,6 @@ extension TaxPeriodInput {
         newRecord.taxPeriodId = taxPeriod
         newRecord.taxCycle = taxCycle
         context.insert(newRecord)
-        
         return newRecord
     }
 }

@@ -66,7 +66,11 @@ struct QuarterMasterDashboard: View {
             Divider()
             
             VStack(alignment: .leading, spacing: 12) {
-                Text("Select Quarter to estimate and identify source file").font(.caption.bold()).foregroundStyle(.secondary)
+                Text ("Generate Tax Estimates")
+                    .font(.headline)
+                    .padding(.bottom,15)
+                
+                Text("Select Quarter to estimate and identify input file").font(.caption.bold()).foregroundStyle(.secondary)
                 
                 Picker("Quarter", selection: $selectedQuarter) {
                     ForEach(TaxPeriod.allCases) { q in Text(q.rawValue).tag(q) }
@@ -74,7 +78,21 @@ struct QuarterMasterDashboard: View {
                 .pickerStyle(.segmented)
                 
                 Button { isImporting = true; taxCycle = .quarterly } label: {
-                    Label("Select Input File for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
+                    Label("Select Quarterly File for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.bottom,25)
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Click to identify input file for annual estimate").font(.caption.bold()).foregroundStyle(.secondary)
+                
+                Button {
+                    isImporting = true
+                    taxCycle = .annual
+                    selectedQuarter = .fourth   // An annual record maps to all 4 quarters.
+                } label: {
+                    Label("Select Annual Estimate File", systemImage: "doc.badge.plus")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
