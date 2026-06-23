@@ -11,7 +11,7 @@ import SwiftData
 struct CSVImportService {
         
     static func processCSV(content: String, context: ModelContext, taxPeriod: TaxPeriod) -> TaxPeriodInput {
-        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, in: context)
+        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, taxCycle: .quarterly, in: context)
         
             // Parse input file: split into lines, then by quote-comma-quote (ignoring internal value commas).
         let rows = content.components(separatedBy: .newlines)

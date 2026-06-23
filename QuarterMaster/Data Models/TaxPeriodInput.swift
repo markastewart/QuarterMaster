@@ -11,6 +11,7 @@ import SwiftData
 @Model
 final class TaxPeriodInput {
     var taxPeriodId: String = ""
+    var taxCycle: TaxCycle = TaxCycle.quarterly
     var pensionAnnuities = 0.0
     var socialSecurity = 0.0
     var interest = 0.0
@@ -44,7 +45,7 @@ final class TaxPeriodInput {
 
 extension TaxPeriodInput {
     /// Returns an existing record or creates a new one, ready for population.
-    static func getRecord(for taxPeriod: String, in context: ModelContext) -> TaxPeriodInput {
+    static func getRecord(for taxPeriod: String, taxCycle: TaxCycle, in context: ModelContext) -> TaxPeriodInput {
         let predicate = #Predicate<TaxPeriodInput> { $0.taxPeriodId == taxPeriod }
         let descriptor = FetchDescriptor<TaxPeriodInput>(predicate: predicate)
         
@@ -59,6 +60,7 @@ extension TaxPeriodInput {
         
         let newRecord = TaxPeriodInput()
         newRecord.taxPeriodId = taxPeriod
+        newRecord.taxCycle = taxCycle
         context.insert(newRecord)
         
         return newRecord
@@ -89,9 +91,9 @@ enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-enum TaxCycle: Int, CaseIterable, Identifiable, Hashable {
-    case quarterly
-    case annual
+enum TaxCycle: String, Codable, CaseIterable, Identifiable, Hashable {
+    case quarterly = "Quarterly"
+    case annual = "Annual"
     
-    var id: Int {self.rawValue}
+    var id: String {self.rawValue}
 }
