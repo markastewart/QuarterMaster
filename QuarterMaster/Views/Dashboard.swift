@@ -15,6 +15,7 @@ struct QuarterMasterDashboard: View {
     @State private var isImporting = false
     @State private var selectedQuarter: TaxPeriod = .first
     @Query(sort: \TaxPeriodInput.taxPeriodId) private var taxPeriodInput: [TaxPeriodInput]
+    @State var taxCycle: TaxCycle = .quarterly
     
     var body: some View {
         NavigationStack() {
@@ -65,15 +66,15 @@ struct QuarterMasterDashboard: View {
             Divider()
             
             VStack(alignment: .leading, spacing: 12) {
-                Text("Select Quarter to estimate and Import source file").font(.caption.bold()).foregroundStyle(.secondary)
+                Text("Select Quarter to estimate and identify source file").font(.caption.bold()).foregroundStyle(.secondary)
                 
                 Picker("Quarter", selection: $selectedQuarter) {
                     ForEach(TaxPeriod.allCases) { q in Text(q.rawValue).tag(q) }
                 }
                 .pickerStyle(.segmented)
                 
-                Button { isImporting = true } label: {
-                    Label("Import \(selectedQuarter.rawValue) CSV", systemImage: "doc.badge.plus")
+                Button { isImporting = true; taxCycle = .quarterly } label: {
+                    Label("Select Input File for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -81,7 +82,7 @@ struct QuarterMasterDashboard: View {
             Spacer()
         }
         .padding()
-        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateQuarterlyEstimate(for: selectedQuarter, result: result, context: modelContext)
+        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateTaxEstimate(for: selectedQuarter, result: result, taxCycle: taxCycle, context: modelContext)
         }
     }
 }
