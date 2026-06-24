@@ -17,6 +17,11 @@ struct QuarterMasterDashboard: View {
     @State private var selectedCycle: EstimationCycle = .quarterly
     @Query(sort: \TaxPeriodInput.taxPeriodId) private var taxPeriodInput: [TaxPeriodInput]
     
+        // Filter depending on selected estimate cycle
+    var filteredInput: [TaxPeriodInput] {
+        taxPeriodInput.filter { $0.estimationCycle.rawValue == selectedCycle.rawValue }
+    }
+    
     var body: some View {
         NavigationStack() {
             if let vm = viewModel {
@@ -28,9 +33,9 @@ struct QuarterMasterDashboard: View {
                     Divider()
                     
                     VStack(spacing: 20) {
-                        EstimateSummary(title: "Federal Tax Estimates", isFederal: true, taxPeriodInput: taxPeriodInput)
+                        EstimateSummary(title: "Federal Tax Estimates", isFederal: true, taxPeriodInput: filteredInput)
                         Divider()
-                        EstimateSummary(title: "State Tax Estimates", isFederal: false, taxPeriodInput: taxPeriodInput)
+                        EstimateSummary(title: "State Tax Estimates", isFederal: false, taxPeriodInput: filteredInput)
                     }
                     .padding()
                 }
