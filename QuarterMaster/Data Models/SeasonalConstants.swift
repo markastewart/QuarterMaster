@@ -35,7 +35,7 @@ struct SeasonalConstants {
         }
     }
     
-    struct IRSTaxTable2025 {
+    struct IRSTaxTable {
         static let mfjBrackets: [TaxBracket] = [
             TaxBracket(rate: 0.10, minIncome: 0, maxIncome: 23850),
             TaxBracket(rate: 0.12, minIncome: 23851, maxIncome: 96950),

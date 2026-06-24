@@ -13,13 +13,9 @@ struct DataCurator {
         
             // Aggregate other income parts to a single value for other income.
         let otherIncomeFields: [EstimateValues] = [.oilRoyalties, .supplementalIncome]
-        
-        var calculatedOtherIncome = 00.0
-        for field in otherIncomeFields {
-            calculatedOtherIncome = calculatedOtherIncome + taxPeriodInput[keyPath: field.keyPath]
+        taxPeriodInput.otherIncome = otherIncomeFields.reduce(0.0) { sum, field in
+            sum + taxPeriodInput[keyPath: field.keyPath]
         }
-        taxPeriodInput.otherIncome = calculatedOtherIncome
-        
             // Use factor to estimate Qualified Dividends from sum of Qualified Eligible Dividends & Short-term Capital Gain/Reinvest STCG
         taxPeriodInput.qualifiedDividends = (taxPeriodInput.qualifiedEligibleDividends + taxPeriodInput.shortTermCG +  taxPeriodInput.reinvestSTCG) * SeasonalConstants.qualifiedDividendsFactor
         

@@ -8,6 +8,13 @@
 import Foundation
 import SwiftData
 
+extension String {
+    func toDouble() -> Double? {
+        let cleaned = self.replacingOccurrences(of: "[$, ]", with: "", options: .regularExpression)
+        return Double(cleaned)
+    }
+}
+
 struct CSVImportService {
         
     static func processCSV(content: String, context: ModelContext, estimationCycle: EstimationCycle, taxPeriod: TaxPeriod) -> TaxPeriodInput {
@@ -43,19 +50,13 @@ struct CSVImportService {
             
             let rawValue = parts[1].replacingOccurrences(of: "\"", with: "")
             
-                // Match label against valid label enum
-            if let category = EstimateValues.allCases.first(where: {
-                $0.rawValue.caseInsensitiveCompare(rawLabel) == .orderedSame
-            }) {
-                    // Sanitize numeric value; remove '$', ',', and whitespace
-                let cleanedValue = rawValue.replacingOccurrences(of: "[$, ]", with: "", options: .regularExpression)
-                
-                    // Convert to Double and Save via KeyPath
-                if let doubleValue = Double(cleanedValue) {
-                    taxPeriodInput[keyPath: category.keyPath] = doubleValue
-                } else {
-                    print("Could not convert value '\(rawValue)' to Double for \(rawLabel)")
+                // Match label against valid label enum. Sanitize numeric value; remove '$', ',', and whitespace
+            if let category = EstimateValues.labelLookup[rawLabel.lowercased()] {
+                guard let cleanValue = rawValue.toDouble() else {
+                    print("Can't convert rawValue to double")
+                    return taxPeriodInput
                 }
+                taxPeriodInput[keyPath: category.keyPath] = cleanValue
             }
         }
         return taxPeriodInput
@@ -76,19 +77,13 @@ struct CSVImportService {
             let budget = fields.count > 3 ? fields[3] : ""
             let rawValue = budget.replacingOccurrences(of: ",", with: "")
             
-                // Match label against valid label enum
-            if let category = EstimateValues.allCases.first(where: {
-                $0.rawValue.caseInsensitiveCompare(rawLabel) == .orderedSame
-            }) {
-                    // Sanitize numeric value; remove '$', ',', and whitespace
-                let cleanedValue = rawValue.replacingOccurrences(of: "[$, ]", with: "", options: .regularExpression)
-                
-                    // Convert to Double and Save via KeyPath
-                if let doubleValue = Double(cleanedValue) {
-                    taxPeriodInput[keyPath: category.keyPath] = doubleValue
-                } else {
-                    print("Could not convert value '\(rawValue)' to Double for \(rawLabel)")
+                // Match label against valid label enum. Sanitize numeric value; remove '$', ',', and whitespace
+            if let category = EstimateValues.labelLookup[rawLabel.lowercased()] {
+                guard let cleanValue = rawValue.toDouble() else {
+                    print("Can't convert rawValue to double")
+                    return taxPeriodInput
                 }
+                taxPeriodInput[keyPath: category.keyPath] = cleanValue
             }
         }
         return taxPeriodInput

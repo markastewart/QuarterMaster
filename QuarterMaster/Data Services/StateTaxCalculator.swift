@@ -42,11 +42,12 @@ struct StateTaxCalculator {
     }
     
     static func calculateTaxFromTables(taxableIncome: Double) -> Double {
+        let income = max(0, taxableIncome)
+        let minTax = SeasonalConstants.OhioTaxTable2025.getMinTax(for: income)
+        let minRate = SeasonalConstants.OhioTaxTable2025.getMarginalRate(for: income)
+        let bracketStart = SeasonalConstants.OhioTaxTable2025.getBracketStart(for: income)
         
-        let minTax = SeasonalConstants.OhioTaxTable2025.getMinTax(for: taxableIncome)
-        let minRate = SeasonalConstants.OhioTaxTable2025.getMarginalRate(for: taxableIncome)
-        let totalTax = minTax + ((taxableIncome - SeasonalConstants.OhioTaxTable2025.getBracketStart(for: taxableIncome)) * minRate)
-        return totalTax
+        return minTax + (max(0, income - bracketStart) * minRate)
     }
     
     static func calculateCredits(taxLiability: Double, taxableIncome: Double) -> Double {

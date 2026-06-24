@@ -105,4 +105,3 @@ func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, taxPerio
         return DrilldownRow(label: config.displayName, values: rowValues)
     }
 }
-

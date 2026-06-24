@@ -14,7 +14,6 @@ struct EstimateSummary: View {
     let estimateCycle: EstimationCycle
     
     @State private var selectedRowID: String?
-    @State private var showDrillDown = false
     
     let taxDisplayConfigs = [
         TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
@@ -33,14 +32,7 @@ struct EstimateSummary: View {
                 EstimateColumns.makeColumns(taxEntity: taxEntity, estimateCycle: estimateCycle)
             }
             .id(estimateCycle)
-            
-            .onChange(of: selectedRowID) { _, newValue in
-                if newValue != nil { showDrillDown = true }
-            }
-            .onChange(of: showDrillDown) { _, newValue in
-                selectedRowID = nil
-            }
-            .navigationDestination(isPresented: $showDrillDown) {
+            .navigationDestination(item: $selectedRowID) { id in
                 EstimateDrillDown(isFederal: isFederal, taxPeriodInput: taxPeriodInput, estimateCycle: estimateCycle)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

@@ -60,17 +60,14 @@ struct FederalTaxCalculator {
         guard let periodType = fedEstimate.taxPeriodInput?.taxPeriodId else { return }
         let annualizedAGI = (taxPeriodInput.pensionAnnuities + taxPeriodInput.ordinaryDividends + taxPeriodInput.otherIncome + taxPeriodInput.interest) * TaxPeriod.factor(for: periodType)
         
-        let annualizedSocialSecurity = taxPeriodInput.socialSecurity * TaxPeriod.factor(for: periodType)
+        let annualizedSocSec = taxPeriodInput.socialSecurity * TaxPeriod.factor(for: periodType)
         
-        if Int (annualizedAGI) > SeasonalConstants.ssMaxThreshold {
-            fedEstimate.taxableSocialSecurity = (annualizedSocialSecurity * 0.85)
-            
-        }
-        else if Int (annualizedAGI) < SeasonalConstants.ssMinThreshold {
-            fedEstimate.taxableSocialSecurity = 0
-        }
-        else {
-            fedEstimate.taxableSocialSecurity = annualizedSocialSecurity * 0.50
+        fedEstimate.taxableSocialSecurity = computeTaxableSocialSecurity(annualizedAGI: annualizedAGI, annualizedSS: annualizedSocSec)
+        
+        func computeTaxableSocialSecurity(annualizedAGI: Double, annualizedSS: Double) -> Double {
+            if annualizedAGI > Double(SeasonalConstants.ssMaxThreshold) { return annualizedSS * 0.85 }
+            if annualizedAGI < Double(SeasonalConstants.ssMinThreshold) { return 0 }
+            return annualizedSS * 0.50
         }
     }
     
@@ -104,21 +101,21 @@ struct FederalTaxCalculator {
     }
     
     
-    static func calculateTaxFromTables (taxableIncome: Double) -> Double {
+    static func calculateTaxFromTables(taxableIncome: Double) -> Double {
         var totalTax = 0.0
+        var remainingIncome = taxableIncome
         
-        for taxTableRecord in SeasonalConstants.IRSTaxTable2025.mfjBrackets {
+        for bracket in SeasonalConstants.IRSTaxTable.mfjBrackets {
+            let bracketMax = bracket.maxIncome ?? Double.infinity
+            let taxableInThisBracket = min(remainingIncome, bracketMax - bracket.minIncome)
             
-                // Loop through brackets preceding the bracket for the taxableIncome
-            if let max = taxTableRecord.maxIncome, taxableIncome > max {
-                totalTax += (taxTableRecord.maxIncome! - taxTableRecord.minIncome) * taxTableRecord.rate
-            }
-                // This is the bracket for the  taxable income
-            else {
-                totalTax += (taxableIncome - taxTableRecord.minIncome) * taxTableRecord.rate
+            if taxableInThisBracket > 0 {
+                totalTax += taxableInThisBracket * bracket.rate
+                remainingIncome -= taxableInThisBracket
+            } else {
                 break
             }
         }
-        return totalTax
+        return max(0, totalTax)
     }
 }

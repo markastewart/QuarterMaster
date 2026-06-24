@@ -57,4 +57,8 @@ enum EstimateValues: String, CaseIterable {
         case .dividendsNonTaxable: return \.dividendsNonTaxable
         }
     }
+    
+    static let labelLookup: [String: EstimateValues] = {
+        Dictionary(uniqueKeysWithValues: allCases.map { ($0.rawValue.lowercased(), $0) })
+    }()
 }
