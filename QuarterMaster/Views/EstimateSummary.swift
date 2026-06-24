@@ -37,6 +37,9 @@ struct EstimateSummary: View {
             .onChange(of: selectedRowID) { _, newValue in
                 if newValue != nil { showDrillDown = true }
             }
+            .onChange(of: showDrillDown) { _, newValue in
+                selectedRowID = nil
+            }
             .navigationDestination(isPresented: $showDrillDown) {
                 EstimateDrillDown(isFederal: isFederal, taxPeriodInput: taxPeriodInput, estimateCycle: estimateCycle)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
