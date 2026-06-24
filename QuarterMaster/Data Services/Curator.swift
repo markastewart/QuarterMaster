@@ -30,9 +30,9 @@ struct DataCurator {
         taxPeriodInput.capitalGainDistribution += taxPeriodInput.reinvestLTCG
         
             // Remove leading negative sign from Federal and State witholdings and estimates.
-        taxPeriodInput.fedCYEstimates = taxPeriodInput.fedCYEstimates * -1
-        taxPeriodInput.stateCYEstimates = taxPeriodInput.stateCYEstimates * -1
-        taxPeriodInput.fedCYWitholding = taxPeriodInput.fedCYWitholding * -1
-        taxPeriodInput.stateCYWitholding = taxPeriodInput.stateCYWitholding * -1
+        taxPeriodInput.fedCYEstimates = abs(taxPeriodInput.fedCYEstimates)
+        taxPeriodInput.stateCYEstimates = abs(taxPeriodInput.stateCYEstimates)
+        taxPeriodInput.fedCYWitholding = abs(taxPeriodInput.fedCYWitholding)
+        taxPeriodInput.stateCYWitholding = abs(taxPeriodInput.stateCYWitholding)
     }
 }

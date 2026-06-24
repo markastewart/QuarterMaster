@@ -97,3 +97,37 @@ enum TaxCycle: String, Codable, CaseIterable, Identifiable, Hashable {
     
     var id: String {self.rawValue}
 }
+
+    // Helper extension so in Xcode when at a breakpoint, can type, po <TaxPeriodInput typed variable name - e.g., po taxPeriodInput and get a display of all variables and values.
+extension TaxPeriodInput: CustomStringConvertible {
+    var description: String {
+        """
+        TaxPeriodInput:
+          taxPeriodId:               \(taxPeriodId)
+          taxCycle:                  \(taxCycle)
+          pensionAnnuities:          \(pensionAnnuities)
+          socialSecurity:            \(socialSecurity)
+          interest:                  \(interest)
+          oilRoyalties:              \(oilRoyalties)
+          supplementalIncome:        \(supplementalIncome)
+          otherIncome:               \(otherIncome)
+          ordinaryDividends:         \(ordinaryDividends)
+          qualifiedDividends:        \(qualifiedDividends)
+          qualifiedEligibleDividends:\(qualifiedEligibleDividends)
+          iraDistributions:          \(iraDistributions)
+          shortTermCG:               \(shortTermCG)
+          shortTermGain:             \(shortTermGain)
+          longTermGain:              \(longTermGain)
+          reinvestSTCG:              \(reinvestSTCG)
+          reinvestLTCG:              \(reinvestLTCG)
+          capitalGainDistribution:   \(capitalGainDistribution)
+          fedCYWitholding:           \(fedCYWitholding)
+          fedCYEstimates:            \(fedCYEstimates)
+          stateCYWitholding:         \(stateCYWitholding)
+          stateCYEstimates:          \(stateCYEstimates)
+          deposit529:                \(deposit529)
+          dividendsNonTaxable:       \(dividendsNonTaxable)
+          taxEstimates count:        \(taxEstimates.count)
+        """
+    }
+}
