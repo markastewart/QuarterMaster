@@ -43,7 +43,7 @@ class DashboardVM {
         var id: String { label }
     }
     
-    func generateTaxEstimate(for taxPeriod: TaxPeriod, result: Result<[URL], Error>, taxCycle: TaxCycle, context: ModelContext) {
+    func generateTaxEstimate(for taxPeriod: TaxPeriod, result: Result<[URL], Error>, estimationCycle: EstimationCycle, context: ModelContext) {
         var taxPeriodInput: TaxPeriodInput?
         
             // Read and store input data
@@ -57,7 +57,7 @@ class DashboardVM {
                 let content = try? String(contentsOf: url, encoding: .utf8)
                 guard let inputRecord = content else { return }
                 
-                taxPeriodInput = CSVImportService.processCSV(content: inputRecord, context: modelContext, taxCycle: taxCycle, taxPeriod: taxPeriod)
+                taxPeriodInput = CSVImportService.processCSV(content: inputRecord, context: modelContext, estimationCycle: estimationCycle, taxPeriod: taxPeriod)
                 
             case .failure(let error):
                 print("Failed to read and process input data for the tax period: \(error.localizedDescription)")

@@ -14,8 +14,8 @@ struct QuarterMasterDashboard: View {
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
     @State private var selectedQuarter: TaxPeriod = .first
+    @State private var estimationCycle: EstimationCycle = .quarterly
     @Query(sort: \TaxPeriodInput.taxPeriodId) private var taxPeriodInput: [TaxPeriodInput]
-    @State var taxCycle: TaxCycle = .quarterly
     
     var body: some View {
         NavigationStack() {
@@ -77,7 +77,7 @@ struct QuarterMasterDashboard: View {
                 }
                 .pickerStyle(.segmented)
                 
-                Button { isImporting = true; taxCycle = .quarterly } label: {
+                Button { isImporting = true; estimationCycle = .quarterly } label: {
                     Label("Select Quarterly File for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
                         .frame(maxWidth: .infinity)
                 }
@@ -89,7 +89,7 @@ struct QuarterMasterDashboard: View {
                 
                 Button {
                     isImporting = true
-                    taxCycle = .annual
+                    estimationCycle = .annual
                     selectedQuarter = .fourth   // An annual record maps to all 4 quarters.
                 } label: {
                     Label("Select Annual Estimate File", systemImage: "doc.badge.plus")
@@ -100,7 +100,7 @@ struct QuarterMasterDashboard: View {
             Spacer()
         }
         .padding()
-        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateTaxEstimate(for: selectedQuarter, result: result, taxCycle: taxCycle, context: modelContext)
+        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateTaxEstimate(for: selectedQuarter, result: result, estimationCycle: estimationCycle, context: modelContext)
         }
     }
 }

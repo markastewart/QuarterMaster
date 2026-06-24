@@ -10,13 +10,13 @@ import SwiftData
 
 struct CSVImportService {
         
-    static func processCSV(content: String, context: ModelContext, taxCycle: TaxCycle, taxPeriod: TaxPeriod) -> TaxPeriodInput {
+    static func processCSV(content: String, context: ModelContext, estimationCycle: EstimationCycle, taxPeriod: TaxPeriod) -> TaxPeriodInput {
         var taxPeriodInput: TaxPeriodInput?
         
             // Parse input file: split into lines, then handoff to parser depending on input file.
         let rows = content.components(separatedBy: .newlines)
         
-        if taxCycle == TaxCycle.quarterly {
+        if estimationCycle == EstimationCycle.quarterly {
             taxPeriodInput = parseQuarterlyInput (taxPeriod: taxPeriod, inputData: rows, context: context)
         } else {
             taxPeriodInput =  parseAnnualInput (taxPeriod: taxPeriod, inputData: rows, context: context)
@@ -29,7 +29,7 @@ struct CSVImportService {
     }
     
     static func parseQuarterlyInput (taxPeriod: TaxPeriod, inputData: [String], context: ModelContext) -> TaxPeriodInput {
-        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, taxCycle: .quarterly, in: context)
+        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, estimationCycle: .quarterly, in: context)
         
         for row in inputData {
             let parts = row.components(separatedBy: "\",\"")
@@ -62,7 +62,7 @@ struct CSVImportService {
     }
     
     static func parseAnnualInput (taxPeriod: TaxPeriod, inputData: [String], context: ModelContext) -> TaxPeriodInput {
-        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, taxCycle: .annual, in: context)
+        var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, estimationCycle: .annual, in: context)
         
         for row in inputData {
             let fields = parseCSVRow(row)

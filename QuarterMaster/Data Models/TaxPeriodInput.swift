@@ -11,7 +11,7 @@ import SwiftData
 @Model
 final class TaxPeriodInput {
     var taxPeriodId: String = ""
-    var taxCycle: TaxCycle = TaxCycle.quarterly
+    var estimationCycle: EstimationCycle = EstimationCycle.quarterly
     var pensionAnnuities = 0.0
     var socialSecurity = 0.0
     var interest = 0.0
@@ -45,13 +45,13 @@ final class TaxPeriodInput {
 
 extension TaxPeriodInput {
         /// Returns an existing record or creates a new one, ready for population.
-    static func getRecord(for taxPeriod: String, taxCycle: TaxCycle, in context: ModelContext) -> TaxPeriodInput {
+    static func getRecord(for taxPeriod: String, estimationCycle: EstimationCycle, in context: ModelContext) -> TaxPeriodInput {
         
             // Fetch all records, filter in memory — avoids the predicate enum bug. If record found, delete it and create a new one. If no record, then just create a new one.
         let descriptor = FetchDescriptor<TaxPeriodInput>()
         do {
             let all = try context.fetch(descriptor)
-            if let existing = all.first(where: { $0.taxCycle == taxCycle && $0.taxPeriodId == taxPeriod }) {
+            if let existing = all.first(where: { $0.estimationCycle == estimationCycle && $0.taxPeriodId == taxPeriod }) {
                 context.delete(existing)
                 try? context.save()
             }
@@ -61,7 +61,7 @@ extension TaxPeriodInput {
         
         let newRecord = TaxPeriodInput()
         newRecord.taxPeriodId = taxPeriod
-        newRecord.taxCycle = taxCycle
+        newRecord.estimationCycle = estimationCycle
         context.insert(newRecord)
         return newRecord
     }
@@ -91,7 +91,7 @@ enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-enum TaxCycle: String, Codable, CaseIterable, Identifiable, Hashable {
+enum EstimationCycle: String, Codable, CaseIterable, Identifiable, Hashable {
     case quarterly = "Quarterly"
     case annual = "Annual"
     
@@ -104,7 +104,7 @@ extension TaxPeriodInput: CustomStringConvertible {
         """
         TaxPeriodInput:
           taxPeriodId:               \(taxPeriodId)
-          taxCycle:                  \(taxCycle)
+          estimationCycle:                  \(estimationCycle)
           pensionAnnuities:          \(pensionAnnuities)
           socialSecurity:            \(socialSecurity)
           interest:                  \(interest)
