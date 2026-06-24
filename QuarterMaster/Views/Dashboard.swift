@@ -14,7 +14,7 @@ struct QuarterMasterDashboard: View {
     @State private var viewModel: DashboardVM?
     @State private var isImporting = false
     @State private var selectedQuarter: TaxPeriod = .first
-    @State private var estimationCycle: EstimationCycle = .quarterly
+    @State private var selectedCycle: EstimationCycle = .quarterly
     @Query(sort: \TaxPeriodInput.taxPeriodId) private var taxPeriodInput: [TaxPeriodInput]
     
     var body: some View {
@@ -22,7 +22,7 @@ struct QuarterMasterDashboard: View {
             if let vm = viewModel {
                 HStack(alignment: .top, spacing: 0) {
                     controlSidebarPane(vm: vm)
-                        .frame(width: 280)
+                        .frame(width: 320)
                         .padding(.trailing, 8)
                     
                     Divider()
@@ -65,42 +65,68 @@ struct QuarterMasterDashboard: View {
             
             Divider()
             
-            VStack(alignment: .leading, spacing: 12) {
-                Text ("Generate Tax Estimates")
-                    .font(.headline)
-                    .padding(.bottom,15)
-                
-                Text("Select Quarter to estimate and identify input file").font(.caption.bold()).foregroundStyle(.secondary)
-                
-                Picker("Quarter", selection: $selectedQuarter) {
-                    ForEach(TaxPeriod.allCases) { q in Text(q.rawValue).tag(q) }
-                }
-                .pickerStyle(.segmented)
-                
-                Button { isImporting = true; estimationCycle = .quarterly } label: {
-                    Label("Select Quarterly File for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.bottom,25)
+            Form {
+                EstimationCyclePicker(selectedCycle: $selectedCycle)
             }
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Click to identify input file for annual estimate").font(.caption.bold()).foregroundStyle(.secondary)
-                
-                Button {
-                    isImporting = true
-                    estimationCycle = .annual
-                    selectedQuarter = .fourth   // An annual record maps to all 4 quarters.
-                } label: {
-                    Label("Select Annual Estimate File", systemImage: "doc.badge.plus")
-                        .frame(maxWidth: .infinity)
+            
+            Text ("Generate \(selectedCycle.rawValue) Tax Estimate")
+                .font(.headline)
+                .padding([.top, .bottom], 5)
+            
+            if selectedCycle == .quarterly {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Select Quarter to estimate and identify input file").font(.caption.bold()).foregroundStyle(.secondary)
+                    
+                    Picker("Quarter", selection: $selectedQuarter) {
+                        ForEach(TaxPeriod.allCases) { q in Text(q.rawValue).tag(q) }
+                    }
+                    .pickerStyle(.segmented)
+                    
+                    Button { isImporting = true } label: {
+                        Label("Create quarterly estimate for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.bottom,25)
                 }
-                .buttonStyle(.borderedProminent)
+            }
+            else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Identify input file for annual estimate").font(.caption.bold()).foregroundStyle(.secondary)
+                    
+                    Button {
+                        isImporting = true
+                        selectedQuarter = .fourth   // An annual record maps to all 4 quarters.
+                    } label: {
+                        Label("Click to create annual estimate", systemImage: "doc.badge.plus")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
             Spacer()
         }
         .padding()
-        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateTaxEstimate(for: selectedQuarter, result: result, estimationCycle: estimationCycle, context: modelContext)
+        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: false) { result in vm.generateTaxEstimate(for: selectedQuarter, result: result, estimationCycle: selectedCycle, context: modelContext)
+        }
+    }
+}
+
+struct EstimationCyclePicker: View {
+    @Binding var selectedCycle: EstimationCycle
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Select Estimation Cycle")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Picker("", selection: $selectedCycle) {
+                ForEach(EstimationCycle.allCases) { cycle in
+                    Text(cycle.rawValue).tag(cycle)
+                }
+            }
+            .pickerStyle(.segmented)
         }
     }
 }
