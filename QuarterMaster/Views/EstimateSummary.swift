@@ -12,6 +12,7 @@ struct EstimateSummary: View {
     let title: String
     let isFederal: Bool
     let taxPeriodInput: [TaxPeriodInput]
+    let estimateCycle: EstimationCycle
     
     @State private var selectedRowID: String?
     @State private var showDrillDown = false
@@ -28,24 +29,66 @@ struct EstimateSummary: View {
             Text(title).font(.headline).padding(.bottom, 4)
             
             let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
+            
+                // Extract data rows to present
             let rows = summaryRows(taxPeriodInput: taxPeriodInput, configs: taxDisplayConfigs, taxEntity: taxEntity)
             
-            Table(rows, selection: $selectedRowID) {
-                TableColumn("") { Text($0.label).bold() }.width(min: 200)
-                TableColumn("1Q") { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                TableColumn("2Q") { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                TableColumn("3Q") { Text($0.q3, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                TableColumn("4Q") { Text($0.q4, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-            }
-            .onChange(of: selectedRowID) { _, newValue in
-                if newValue != nil { showDrillDown = true }
-            }
-            .navigationDestination(isPresented: $showDrillDown) {
-                EstimateDrillDown(title: taxEntity.rawValue, isFederal: isFederal,taxPeriodInput: taxPeriodInput)
-            }
-            .frame(height: CGFloat(rows.count) * 28 + 30)
+            summaryTable(rows: rows, estimateCycle: estimateCycle)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
+    }
+    
+    @ViewBuilder
+    func summaryTable(rows: [TaxSummaryRow], estimateCycle: EstimationCycle) -> some View {
+        Table(rows, selection: $selectedRowID) {
+            makeColumns(estimateCycle: estimateCycle)
+        }
+        .onChange(of: selectedRowID) { _, newValue in
+            if newValue != nil { showDrillDown = true }
+        }
+        .navigationDestination(isPresented: $showDrillDown) {
+            let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
+            EstimateDrillDown(title: taxEntity.rawValue, isFederal: isFederal, taxPeriodInput: taxPeriodInput)
+        }
+        .frame(height: CGFloat(rows.count) * 28 + 30)
+    }
+    
+    @TableColumnBuilder<TaxSummaryRow, Never>
+    func makeColumns(estimateCycle: EstimationCycle) -> some TableColumnContent<TaxSummaryRow, Never> {
+        
+        TableColumn("") { (row: TaxSummaryRow) in
+            Text(row.label).bold()
+        }
+        .width(min: 200)
+        
+        if estimateCycle == .quarterly {
+            
+            TableColumn("\(TaxPeriod.first.rawValue)") { (row: TaxSummaryRow) in
+                Text(row[TaxPeriod.first.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
+            }
+            .alignment(.center)
+            
+            TableColumn("\(TaxPeriod.second.rawValue)") { (row: TaxSummaryRow) in
+                Text(row[TaxPeriod.second.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
+            }
+            .alignment(.center)
+            
+            TableColumn("\(TaxPeriod.third.rawValue)") { (row: TaxSummaryRow) in
+                Text(row[TaxPeriod.third.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
+            }
+            .alignment(.center)
+            
+            TableColumn("\(TaxPeriod.fourth.rawValue)") { (row: TaxSummaryRow) in
+                Text(row[TaxPeriod.fourth.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
+            }
+            .alignment(.center)
+        }
+        else {
+            TableColumn("\(TaxPeriod.annual.rawValue)") { (row: TaxSummaryRow) in
+                Text(row[TaxPeriod.annual.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
+            }
+            .alignment(.center)
+        }
     }
 }
 
@@ -56,13 +99,15 @@ struct TaxEstimateResultMap {
     let displayName: String
 }
 
-struct TaxSummaryRow: Identifiable, Hashable {
+struct TaxSummaryRow: Identifiable {
     let label: String
-    let q1: Double
-    let q2: Double
-    let q3: Double
-    let q4: Double
+    let values: [String: Double]
     var id: String { label }
+    
+    // Explicitly return a Double
+    subscript(key: String) -> Double {
+        return values[key] ?? 0.0
+    }
 }
 
 func taxResults(from taxPeriodInput: [TaxPeriodInput], taxEntity: TaxEntity) -> [TaxEstimate] {
@@ -75,12 +120,22 @@ func summaryRows(taxPeriodInput: [TaxPeriodInput], configs: [TaxEstimateResultMa
     let results = taxResults(from: taxPeriodInput, taxEntity: taxEntity)
     
     return configs.map { config in
-        TaxSummaryRow(
-            label: config.displayName,
-            q1: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.first.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q2: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.second.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q3: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.third.rawValue })?[keyPath: config.keyPath] ?? 0,
-            q4: results.first(where: { $0.taxPeriodInput?.taxPeriodId == TaxPeriod.fourth.rawValue })?[keyPath: config.keyPath] ?? 0
-        )
+        // Explicitly type the dictionary here
+        var rowValues: [String: Double] = [:]
+        
+        for inputRecord in taxPeriodInput {
+            let period = inputRecord.taxPeriodId
+            // Find the estimate
+            let estimate = results.first(where: { $0.taxPeriodInput?.taxPeriodId == period })
+            
+            // Ensure the value extracted is a Double.
+            // If the keyPath returns an optional, coalesce it to 0.0
+            let val: Double = estimate?[keyPath: config.keyPath] ?? 0.0
+            
+            // Now Swift knows exactly what type the key and value are
+            rowValues[period] = val
+        }
+        return TaxSummaryRow(label: config.displayName, values: rowValues)
     }
 }
+
