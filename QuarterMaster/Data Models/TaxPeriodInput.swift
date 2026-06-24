@@ -100,13 +100,13 @@ enum EstimationCycle: String, Codable, CaseIterable, Identifiable, Hashable {
     var id: String {self.rawValue}
 }
 
-    // Helper extension so in Xcode when at a breakpoint, can type, po <TaxPeriodInput typed variable name - e.g., po taxPeriodInput and get a display of all variables and values.
+    // Helper extension so in Xcode when at a breakpoint, can type, po <TaxPeriodInput typed variable name> - e.g., po taxPeriodInput and get a display of all variables and values.
 extension TaxPeriodInput: CustomStringConvertible {
     var description: String {
         """
         TaxPeriodInput:
           taxPeriodId:               \(taxPeriodId)
-          estimationCycle:                  \(estimationCycle)
+          estimationCycle:           \(estimationCycle)
           pensionAnnuities:          \(pensionAnnuities)
           socialSecurity:            \(socialSecurity)
           interest:                  \(interest)

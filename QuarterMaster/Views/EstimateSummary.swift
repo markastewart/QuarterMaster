@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 
 struct EstimateSummary: View {
-    let title: String
     let isFederal: Bool
     let taxPeriodInput: [TaxPeriodInput]
     let estimateCycle: EstimationCycle
@@ -25,79 +24,30 @@ struct EstimateSummary: View {
     ]
     
     var body: some View {
+            // Identify the tax entity and extract the data rows to present.
+        let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
+        let rows = summaryRows(taxPeriodInput: taxPeriodInput, configs: taxDisplayConfigs, taxEntity: taxEntity)
+        
         VStack(alignment: .leading) {
-            Text(title).font(.headline).padding(.bottom, 4)
+            Table(rows, selection: $selectedRowID) {
+                EstimateColumns.makeColumns(taxEntity: taxEntity, estimateCycle: estimateCycle)
+            }
+            .id(estimateCycle)
             
-            let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
-            
-                // Extract data rows to present
-            let rows = summaryRows(taxPeriodInput: taxPeriodInput, configs: taxDisplayConfigs, taxEntity: taxEntity)
-            
-            summaryTable(rows: rows, estimateCycle: estimateCycle)
+            .onChange(of: selectedRowID) { _, newValue in
+                if newValue != nil { showDrillDown = true }
+            }
+            .navigationDestination(isPresented: $showDrillDown) {
+                EstimateDrillDown(isFederal: isFederal, taxPeriodInput: taxPeriodInput, estimateCycle: estimateCycle)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(height: CGFloat(rows.count) * 28 + 30)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
-    }
-    
-    @ViewBuilder
-    func summaryTable(rows: [TaxSummaryRow], estimateCycle: EstimationCycle) -> some View {
-        Table(rows, selection: $selectedRowID) {
-            makeColumns(estimateCycle: estimateCycle)
-        }
-        .id(estimateCycle)
-        
-        .onChange(of: selectedRowID) { _, newValue in
-            if newValue != nil { showDrillDown = true }
-        }
-        .navigationDestination(isPresented: $showDrillDown) {
-            let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
-            EstimateDrillDown(title: taxEntity.rawValue, isFederal: isFederal, taxPeriodInput: taxPeriodInput)
-        }
-        .frame(height: CGFloat(rows.count) * 28 + 30)
-    }
-    
-    @TableColumnBuilder<TaxSummaryRow, Never>
-    func makeColumns(estimateCycle: EstimationCycle) -> some TableColumnContent<TaxSummaryRow, Never> {
-        
-        TableColumn("") { row in
-            Text(row.label).bold()
-        }
-        .width(min: 200)
-        
-        if estimateCycle == .quarterly {
-            
-            TableColumn("\(TaxPeriod.first.rawValue)") { row in
-                Text(row[TaxPeriod.first.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
-            }
-            .alignment(.center)
-            
-            TableColumn("\(TaxPeriod.second.rawValue)") { row in
-                Text(row[TaxPeriod.second.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
-            }
-            .alignment(.center)
-            
-            TableColumn("\(TaxPeriod.third.rawValue)") { row in
-                Text(row[TaxPeriod.third.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
-            }
-            .alignment(.center)
-            
-            TableColumn("\(TaxPeriod.fourth.rawValue)") { row in
-                Text(row[TaxPeriod.fourth.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
-            }
-            .alignment(.center)
-        }
-        else {
-            TableColumn("\(TaxPeriod.annual.rawValue)") { row in
-                Text(row[TaxPeriod.annual.rawValue], format: .currency(code: "USD").precision(.fractionLength(0)))
-            }
-            TableColumn("") { _ in Text("") } // Invisible spacer
-            TableColumn("") { _ in Text("") } // Invisible spacer
-            TableColumn("") { _ in Text("") } // Invisible spacer
-        }
     }
 }
 
     // Support functions, structures for the view.
-
 struct TaxEstimateResultMap {
     let keyPath: KeyPath<TaxEstimate, Double>
     let displayName: String
@@ -108,10 +58,11 @@ struct TaxSummaryRow: Identifiable {
     let values: [String: Double]
     var id: String { label }
     
-    subscript(key: String) -> Double {       // Explicitly return a Double
+    subscript(key: String) -> Double {
         return values[key] ?? 0.0
     }
 }
+extension TaxSummaryRow: TaxRowProvider {}
 
 func taxResults(from taxPeriodInput: [TaxPeriodInput], taxEntity: TaxEntity) -> [TaxEstimate] {
     taxPeriodInput
@@ -129,7 +80,7 @@ func summaryRows(taxPeriodInput: [TaxPeriodInput], configs: [TaxEstimateResultMa
             let period = inputRecord.taxPeriodId
             let estimate = results.first(where: { $0.taxPeriodInput?.taxPeriodId == period })
             
-                // Ensure the value extracted is a Double. If the keyPath returns an optional, coalesce it to 0.0
+                // Ensure value extracted is a Double. If the keyPath returns an optional, coalesce it to 0.0
             let estimateValue: Double = estimate?[keyPath: config.keyPath] ?? 0.0
             rowValues[period] = estimateValue
         }

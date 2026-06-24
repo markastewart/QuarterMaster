@@ -9,9 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct EstimateDrillDown: View {
-    let title: String
     let isFederal: Bool
     let taxPeriodInput: [TaxPeriodInput]
+    let estimateCycle: EstimationCycle
     
     let federalDrilldownConfigs: [DrilldownRowConfig] = [
         DrilldownRowConfig(displayName: "Interest") { input, _ in input?.interest ?? 0 },
@@ -43,34 +43,29 @@ struct EstimateDrillDown: View {
     ]
     
     var body: some View {
-            let entity = isFederal ? TaxEntity.federal : TaxEntity.state
-            let drilldownConfigs = isFederal ? federalDrilldownConfigs : stateDrilldownConfigs
-            
+        let entity = isFederal ? TaxEntity.federal : TaxEntity.state
+        let drilldownConfigs = isFederal ? federalDrilldownConfigs : stateDrilldownConfigs
         let rows = drilldownRows(configs: drilldownConfigs, taxEntity: entity, taxPeriodInput: taxPeriodInput)
+        
+        VStack {
+            Table(rows) {
+                EstimateColumns.makeColumns(taxEntity: entity, estimateCycle: estimateCycle)
+            }
+            .id(estimateCycle)
             
-            VStack {
-                Table(rows) {
-                    TableColumn("") { Text($0.label).bold() }.width(min: 200)
-                    TableColumn("1Q") { Text($0.q1, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                    TableColumn("2Q") { Text($0.q2, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                    TableColumn("3Q") { Text($0.q3, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                    TableColumn("4Q") { Text($0.q4, format: .currency(code: "USD").precision(.fractionLength(0))) }.alignment(.center)
-                }
-                .frame(minWidth: 500, maxWidth: 900)
-                .navigationTitle("\(entity.rawValue) Detail")
-                
-                HStack {
-                    Text("* - calculated based on an internal factor")
-                        .font(.caption2)
-                        .padding(15)
-                    Spacer()
-                }
+            HStack {
+                Text("* - calculated based on an internal factor")
+                    .font(.caption2)
+                    .padding(15)
+                Spacer()
+            }
         }
+        .navigationTitle("\(entity.rawValue) Summary")
     }
 }
 
-    // Support functions, structures for the view.
 
+    // Support functions, structures for the view.
 struct DrilldownRowConfig {
     let displayName: String
     let extract: (TaxPeriodInput?, TaxEstimate?) -> Double
@@ -78,34 +73,35 @@ struct DrilldownRowConfig {
 
 struct DrilldownRow: Identifiable {
     let label: String
-    let q1: Double
-    let q2: Double
-    let q3: Double
-    let q4: Double
-    
+    let values: [String: Double]
     var id: String { label }
+    
+    subscript(key: String) -> Double {
+        return values[key] ?? 0.0
+    }
 }
+extension DrilldownRow: TaxRowProvider {}
 
 func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, taxPeriodInput: [TaxPeriodInput]) -> [DrilldownRow] {
+    
+        // Looking in input data and estimate record, extract data for specified period and return both records
     func data(for taxPeriod: String) -> (TaxPeriodInput?, TaxEstimate?) {
         let input = taxPeriodInput.first { $0.taxPeriodId == taxPeriod }
         let estimate = input?.taxEstimates.first { $0.taxEntity == taxEntity.rawValue }
         return (input, estimate)
     }
     
-    let q1Data = data(for: TaxPeriod.first.rawValue)
-    let q2Data = data(for: TaxPeriod.second.rawValue)
-    let q3Data = data(for: TaxPeriod.third.rawValue)
-    let q4Data = data(for: TaxPeriod.fourth.rawValue)
-    
+        // Iterating through the configs, get period ID, extract input and estimate data records for the period, then extract the value associated with the specific config name from the record where that config exists.
     return configs.map { config in
-        DrilldownRow(
-            label: config.displayName,
-            q1: config.extract(q1Data.0, q1Data.1),
-            q2: config.extract(q2Data.0, q2Data.1),
-            q3: config.extract(q3Data.0, q3Data.1),
-            q4: config.extract(q4Data.0, q4Data.1)
-        )
+        var rowValues: [String: Double] = [:]
+        
+        for inputRecord in taxPeriodInput {
+            let period = inputRecord.taxPeriodId
+            let dataRec = data(for: period)
+            let value=config.extract(dataRec.0, dataRec.1)
+            rowValues[period]=value
+        }
+        return DrilldownRow(label: config.displayName, values: rowValues)
     }
 }
 

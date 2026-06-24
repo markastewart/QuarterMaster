@@ -38,3 +38,24 @@ enum TaxEntity: String, CaseIterable, Identifiable, Hashable {
         // Required for Identifiable so you can use it in a Picker if desired
     var id: String { self.rawValue }
 }
+
+    // Helper extension so in Xcode when at a breakpoint, can type, po <TaxEstimate typed variable name - e.g., po taxEstimate and get a display of all variables and values.
+extension TaxEstimate: CustomStringConvertible {
+    var description: String {
+        """
+        TaxEstimate:
+          taxEntity:                \(taxEntity)
+          taxableSocialSecurity:    \(taxableSocialSecurity)
+          adjustedGrossIncome:      \(adjustedGrossIncome)
+          incomeAdditions:          \(incomeAdditions)
+          taxableCapitalGains:      \(taxableCapitalGains)
+          additionalDeductions:     \(additionalDeductions)
+          totalDeductions:          \(totalDeductions)
+          taxableIncome:            \(taxableIncome)
+          totalTax:                 \(totalTax)
+          taxesPaid:                \(taxesPaid)
+          taxEstimate:              \(taxEstimate)
+          fedAGI:                   \(fedAGI)
+        """
+    }
+}
