@@ -22,6 +22,7 @@ final class TaxEstimate {
     var taxesPaid = 0.0
     var taxEstimate = 0.0
     var fedAGI = 0.0
+    var stateExemptions = 0.0
     
     var taxPeriodInput: TaxPeriodInput?
         
@@ -56,6 +57,7 @@ extension TaxEstimate: CustomStringConvertible {
           taxesPaid:                \(taxesPaid)
           taxEstimate:              \(taxEstimate)
           fedAGI:                   \(fedAGI)
+          stateExemptions:          \(stateExemptions)
         """
     }
 }

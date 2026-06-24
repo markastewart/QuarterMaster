@@ -17,8 +17,8 @@ struct StateTaxCalculator {
         stateEstimate.totalDeductions = calculateDeductions (taxPeriodInput: taxPeriodInput, fedResults: fedEstimate)
         stateEstimate.adjustedGrossIncome = stateEstimate.fedAGI + stateEstimate.incomeAdditions - stateEstimate.totalDeductions
         
-        let exemptions = SeasonalConstants.stateExemption * 2
-        stateEstimate.taxableIncome = stateEstimate.adjustedGrossIncome - exemptions
+        stateEstimate.stateExemptions = SeasonalConstants.stateExemption * 2
+        stateEstimate.taxableIncome = stateEstimate.adjustedGrossIncome - stateEstimate.stateExemptions
         
         stateEstimate.totalTax = calculateTaxFromTables(taxableIncome: stateEstimate.taxableIncome)
         let credits = calculateCredits(taxLiability: stateEstimate.totalTax, taxableIncome: stateEstimate.taxableIncome)

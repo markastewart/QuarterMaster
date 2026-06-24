@@ -36,6 +36,7 @@ struct EstimateDrillDown: View {
         DrilldownRowConfig(displayName: "Additions *") { _, estimate in estimate?.incomeAdditions ?? 0},
         DrilldownRowConfig(displayName: "Deductions") { _, estimate in estimate?.totalDeductions ?? 0 },
         DrilldownRowConfig(displayName: "Ohio Adjusted Gross Income") { _, estimate in estimate?.adjustedGrossIncome ?? 0 },
+        DrilldownRowConfig(displayName: "Exemptions *") { _, estimate in estimate?.stateExemptions ?? 0 },
         DrilldownRowConfig(displayName: "Taxable Income") { _, estimate in estimate?.taxableIncome ?? 0 },
         DrilldownRowConfig(displayName: "Total Ohio tax liability") { _, estimate in estimate?.totalTax ?? 0 },
         DrilldownRowConfig(displayName: "Total Payments") { _, estimate in estimate?.taxesPaid ?? 0 },
