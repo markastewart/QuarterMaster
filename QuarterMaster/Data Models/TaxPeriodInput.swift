@@ -72,6 +72,7 @@ enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {
     case second = "2Q"
     case third = "3Q"
     case fourth = "4Q"
+    case annual = "Annual"
     
         // Required for Identifiable so you can use it in a Picker
     var id: String { self.rawValue }
@@ -82,6 +83,7 @@ enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {
             case .second: return 2.4   // 12 months / 5
             case .third:  return 1.5   // 12 months / 8
             case .fourth: return 1.0   // 12 months / 12
+            case .annual: return 1.0   // 12 months / 12
             }
         }
     
