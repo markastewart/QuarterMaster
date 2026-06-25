@@ -25,10 +25,11 @@ struct DataCurator {
             // Add Reinvest Long-term CG to Capital Gain Distribution
         taxPeriodInput.capitalGainDistribution += taxPeriodInput.reinvestLTCG
         
-            // Remove leading negative sign from Federal and State witholdings and estimates.
+            // Remove leading negative sign from Federal and State witholdings, estimates and cash donations.
         taxPeriodInput.fedCYEstimates = abs(taxPeriodInput.fedCYEstimates)
         taxPeriodInput.stateCYEstimates = abs(taxPeriodInput.stateCYEstimates)
         taxPeriodInput.fedCYWitholding = abs(taxPeriodInput.fedCYWitholding)
         taxPeriodInput.stateCYWitholding = abs(taxPeriodInput.stateCYWitholding)
+        taxPeriodInput.cashDonations = abs(taxPeriodInput.cashDonations)
     }
 }

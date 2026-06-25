@@ -37,7 +37,7 @@ struct FederalTaxCalculator {
         additionalDeductionsCalc(fedEstimate: fedEstimate)
         
             // Calculate total deductions and taxable income
-        fedEstimate.totalDeductions = Double (SeasonalConstants.standardDeduction) + fedEstimate.additionalDeductions
+        fedEstimate.totalDeductions = Double (SeasonalConstants.standardDeduction) + fedEstimate.additionalDeductions + min(taxPeriodInput.cashDonations, 2000.0)
         
         fedEstimate.taxableIncome = fedEstimate.adjustedGrossIncome - fedEstimate.totalDeductions
         

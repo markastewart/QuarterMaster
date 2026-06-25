@@ -34,6 +34,7 @@ final class TaxPeriodInput {
     var stateCYEstimates = 0.0
     var deposit529 = 0.0
     var dividendsNonTaxable = 0.0
+    var cashDonations = 0.0
     
     @Relationship(deleteRule: .cascade, inverse: \TaxEstimate.taxPeriodInput)
     var taxEstimates: [TaxEstimate] = []
@@ -129,6 +130,7 @@ extension TaxPeriodInput: CustomStringConvertible {
           stateCYEstimates:          \(stateCYEstimates)
           deposit529:                \(deposit529)
           dividendsNonTaxable:       \(dividendsNonTaxable)
+          cashDonations:             \(cashDonations)
           taxEstimates count:        \(taxEstimates.count)
         """
     }
