@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		5642521A2FDCD20C0045E385 /* QuarterMaster-2025.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QuarterMaster-2025.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5642521A2FDCD20C0045E385 /* QuarterMaster-2026.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QuarterMaster-2026.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 		5642521B2FDCD20C0045E385 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5642521A2FDCD20C0045E385 /* QuarterMaster-2025.app */,
+				5642521A2FDCD20C0045E385 /* QuarterMaster-2026.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,7 +67,7 @@
 			packageProductDependencies = (
 			);
 			productName = QuarterMaster;
-			productReference = 5642521A2FDCD20C0045E385 /* QuarterMaster-2025.app */;
+			productReference = 5642521A2FDCD20C0045E385 /* QuarterMaster-2026.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -257,7 +257,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				CURRENT_YEAR = 2025;
+				CURRENT_YEAR = 2026;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A3U2TBAN9S;
 				ENABLE_APP_SANDBOX = YES;
@@ -305,7 +305,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				CURRENT_YEAR = 2025;
+				CURRENT_YEAR = 2026;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A3U2TBAN9S;
 				ENABLE_APP_SANDBOX = YES;
