@@ -29,12 +29,18 @@ struct QuarterMasterDashboard: View {
                     controlSidebarPane(vm: vm)
                         .frame(width: 320)
                         .padding(.trailing, 8)
-                    
+
                     Divider()
-                    
-                    VStack(spacing: 20) {
+
+                    VStack(alignment: .leading, spacing: 0) {
                         EstimateSummary(isFederal: true, taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
+
+                        Text("**IRMAA Headroom:** \(vm.irmaaHeadroom, format: .currency(code: "USD").precision(.fractionLength(0)))")
+                            .padding(.leading, 16)
+
                         Divider()
+                            .padding(.vertical, 8)
+
                         EstimateSummary(isFederal: false, taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
                     }
                     .padding()

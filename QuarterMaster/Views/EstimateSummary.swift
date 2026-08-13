@@ -38,7 +38,7 @@ struct EstimateSummary: View {
             }
             .frame(height: CGFloat(rows.count) * 28 + 30)
         }
-        .frame(maxWidth: .infinity, minHeight: 200)
+        .frame(maxWidth: .infinity, minHeight: 160)
     }
 }
 

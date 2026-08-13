@@ -22,6 +22,7 @@ struct SeasonalConstants {
     static let nonTaxDividendsFactor = 0.96         // Used for state calculation of additional taxable income.
     static let programYear = "2026"
     static let maxCashDonations = 2000.0
+    static let irmaaThresholdMFJ = 218000.0         // 2026 first-tier MAGI threshold before Medicare IRMAA surcharge applies (MFJ)
     
     struct TaxBracket {
         let rate: Double

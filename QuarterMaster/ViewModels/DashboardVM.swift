@@ -25,12 +25,28 @@ class DashboardVM {
     
     var federalTaxResults: [TaxEstimate] {
         taxPeriodInput.flatMap { $0.taxEstimates }
-                .filter { $0.taxEntity == TaxEntity.federal.rawValue }
+            .filter { $0.taxEntity == TaxEntity.federal.rawValue }
     }
     
     var stateTaxResults: [TaxEstimate] {
         taxPeriodInput.flatMap { $0.taxEstimates }
-                .filter { $0.taxEntity == TaxEntity.state.rawValue }
+            .filter { $0.taxEntity == TaxEntity.state.rawValue }
+    }
+    
+        // Most recently entered tax period's federal estimate (array sorted ascending by taxPeriodId in fetchData(), so last element is latest period on file).
+    private var latestFederalEstimate: (input: TaxPeriodInput, estimate: TaxEstimate)? {
+        guard let latestInput = taxPeriodInput.last,
+              let estimate = latestInput.taxEstimates.first(where: { $0.taxEntity == TaxEntity.federal.rawValue }) else {
+            return nil
+        }
+        return (latestInput, estimate)
+    }
+    
+        // Headroom (or excess) relative to first-tier IRMAA MAGI threshold, in dollars. Positive: still under the threshold (headroom remaining). Negative: amount over the threshold (surcharge triggered), so magnitude tells you how far over you are.
+    var irmaaHeadroom: Double {
+        guard let latest = latestFederalEstimate else { return 0.0 }
+        let magi = latest.estimate.adjustedGrossIncome + latest.input.dividendsNonTaxable
+        return SeasonalConstants.irmaaThresholdMFJ - magi
     }
     
     struct TaxSummaryRow: Identifiable, Hashable {
@@ -75,5 +91,8 @@ class DashboardVM {
             }
         }
         try? context.save()
+        
+            // Refresh so computed properties above (federalTaxResults, stateTaxResults,mirmaaHeadroom) reflect period just saved.
+        fetchData()
     }
 }
