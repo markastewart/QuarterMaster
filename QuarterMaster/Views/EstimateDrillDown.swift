@@ -14,7 +14,8 @@ struct EstimateDrillDown: View {
     let estimateCycle: EstimationCycle
     
     let federalDrilldownConfigs: [DrilldownRowConfig] = [
-        DrilldownRowConfig(displayName: "Interest") { input, _ in input?.interest ?? 0 },
+        DrilldownRowConfig(displayName: "Taxable Interest") { input, _ in input?.interest ?? 0 },
+        DrilldownRowConfig(displayName: "Tax-Exempt Interest") { input, _ in input?.dividendsNonTaxable ?? 0 },
         DrilldownRowConfig(displayName: "Ordinary Dividends") { input, _ in input?.ordinaryDividends ?? 0},
         DrilldownRowConfig(displayName: "Qualified Dividends *") { input, _ in input?.qualifiedDividends ?? 0},
         DrilldownRowConfig(displayName: "IRA Distributions") { input, _ in input?.iraDistributions ?? 0 },
