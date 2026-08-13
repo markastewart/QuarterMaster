@@ -23,6 +23,7 @@ struct EstimateDrillDown: View {
         DrilldownRowConfig(displayName: "Capital Gains") { _, estimate in estimate?.taxableCapitalGains ?? 0 },
         DrilldownRowConfig(displayName: "Other Income") { input, _ in input?.otherIncome ?? 0 },
         DrilldownRowConfig(displayName: "Adjusted Gross Income") { _, estimate in estimate?.adjustedGrossIncome ?? 0 },
+        DrilldownRowConfig(displayName: "Standard Deduction") { _, _ in Double(SeasonalConstants.standardDeduction) },
         DrilldownRowConfig(displayName: "Additional Deductions") { _, estimate in estimate?.additionalDeductions ?? 0 },
         DrilldownRowConfig(displayName: "Total Deductions") { _, estimate in estimate?.totalDeductions ?? 0 },
         DrilldownRowConfig(displayName: "Taxable Income") { _, estimate in estimate?.taxableIncome ?? 0 },
