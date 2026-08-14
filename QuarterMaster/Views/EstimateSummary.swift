@@ -15,26 +15,12 @@ struct EstimateSummary: View {
     
     @State private var selectedRowID: String?
 
-        // IRMAA headroom only applies at federal level, append conditionally rather than living in a fixed array like other rows.
-    var taxDisplayConfigs: [TaxEstimateResultMap] {
-        var configs = [
-            TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
-            TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
-            TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
-            TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
-        ]
-
-        if isFederal {
-            configs.append(
-                TaxEstimateResultMap(displayName: "IRMAA Headroom") { input, estimate in
-                    let magi = (estimate?.adjustedGrossIncome ?? 0) + input.dividendsNonTaxable
-                    return SeasonalConstants.irmaaThresholdMFJ - magi
-                }
-            )
-        }
-
-        return configs
-    }
+    let taxDisplayConfigs: [TaxEstimateResultMap] = [
+        TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
+        TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
+        TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
+        TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
+    ]
 
     var body: some View {
             // Identify the tax entity and extract the data rows to present.
@@ -67,7 +53,7 @@ struct TaxEstimateResultMap {
         self.extract = { _, estimate in estimate?[keyPath: keyPath] ?? 0.0 }
     }
 
-        // Custom calculation that can pull from both the period's input and its estimate (e.g. IRMAA headroom, which combines TaxEstimate.adjustedGrossIncome with TaxPeriodInput.dividendsNonTaxable).
+        // Custom calculation that can pull from both the period's input and its estimate.
     init(displayName: String, extract: @escaping (TaxPeriodInput, TaxEstimate?) -> Double) {
         self.displayName = displayName
         self.extract = extract
