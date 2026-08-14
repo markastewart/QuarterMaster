@@ -14,14 +14,28 @@ struct EstimateSummary: View {
     let estimateCycle: EstimationCycle
     
     @State private var selectedRowID: String?
-    
-    let taxDisplayConfigs = [
-        TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
-        TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
-        TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
-        TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
-    ]
-    
+
+        // IRMAA headroom only applies at federal level, append conditionally rather than living in a fixed array like other rows.
+    var taxDisplayConfigs: [TaxEstimateResultMap] {
+        var configs = [
+            TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
+            TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
+            TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
+            TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
+        ]
+
+        if isFederal {
+            configs.append(
+                TaxEstimateResultMap(displayName: "IRMAA Headroom") { input, estimate in
+                    let magi = (estimate?.adjustedGrossIncome ?? 0) + input.dividendsNonTaxable
+                    return SeasonalConstants.irmaaThresholdMFJ - magi
+                }
+            )
+        }
+
+        return configs
+    }
+
     var body: some View {
             // Identify the tax entity and extract the data rows to present.
         let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
@@ -44,8 +58,24 @@ struct EstimateSummary: View {
 
     // Support functions, structures for the view.
 struct TaxEstimateResultMap {
-    let keyPath: KeyPath<TaxEstimate, Double>
     let displayName: String
+    private let extract: (TaxPeriodInput, TaxEstimate?) -> Double
+
+        // Existing usage pattern: pull a single Double straight off the TaxEstimate.
+    init(keyPath: KeyPath<TaxEstimate, Double>, displayName: String) {
+        self.displayName = displayName
+        self.extract = { _, estimate in estimate?[keyPath: keyPath] ?? 0.0 }
+    }
+
+        // Custom calculation that can pull from both the period's input and its estimate (e.g. IRMAA headroom, which combines TaxEstimate.adjustedGrossIncome with TaxPeriodInput.dividendsNonTaxable).
+    init(displayName: String, extract: @escaping (TaxPeriodInput, TaxEstimate?) -> Double) {
+        self.displayName = displayName
+        self.extract = extract
+    }
+
+    func value(input: TaxPeriodInput, estimate: TaxEstimate?) -> Double {
+        extract(input, estimate)
+    }
 }
 
 struct TaxSummaryRow: Identifiable {
@@ -74,10 +104,7 @@ func summaryRows(taxPeriodInput: [TaxPeriodInput], configs: [TaxEstimateResultMa
         for inputRecord in taxPeriodInput {
             let period = inputRecord.taxPeriodId
             let estimate = results.first(where: { $0.taxPeriodInput?.taxPeriodId == period })
-            
-                // Ensure value extracted is a Double. If the keyPath returns an optional, coalesce it to 0.0
-            let estimateValue: Double = estimate?[keyPath: config.keyPath] ?? 0.0
-            rowValues[period] = estimateValue
+            rowValues[period] = config.value(input: inputRecord, estimate: estimate)
         }
         return TaxSummaryRow(label: config.displayName, values: rowValues)
     }

@@ -35,9 +35,6 @@ struct QuarterMasterDashboard: View {
                     VStack(alignment: .leading, spacing: 0) {
                         EstimateSummary(isFederal: true, taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
 
-                        Text("**IRMAA Headroom:** \(vm.irmaaHeadroom, format: .currency(code: "USD").precision(.fractionLength(0)))")
-                            .padding(.leading, 16)
-
                         Divider()
                             .padding(.vertical, 8)
 
