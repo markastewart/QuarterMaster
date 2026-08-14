@@ -61,10 +61,13 @@ struct CSVImportService {
         }
         return taxPeriodInput
     }
+
+        // Annual estimate input is a month x month budget/actuals export: two header rows lay out 12 month blocks starting at column index 2, each spanning 3 columns (Actual, Budgeted, Difference). We only use Budgeted: the annual TaxPeriodInput total for each category is the sum of that category's Budgeted value across all 12 months. Actual and Difference aren't used here. The per-month Budgeted values are also persisted to MonthlyBudgetEntry for later IRMAA projection use.
     
     static func parseAnnualInput (taxPeriod: TaxPeriod, inputData: [String], context: ModelContext) -> TaxPeriodInput {
         var taxPeriodInput = TaxPeriodInput.getRecord(for: taxPeriod.rawValue, estimationCycle: .annual, in: context)
-        
+        var monthlyBudget = MonthlyBudgetEntry.resetRecords(in: context)
+
         for row in inputData {
             let fields = parseCSVRow(row)
 
@@ -74,16 +77,20 @@ struct CSVImportService {
                 .drop(while: { $0 == "-" || $0 == " " })
                 .trimmingCharacters(in: .whitespaces) ?? ""
 
-            let budget = fields.count > 3 ? fields[3] : ""
-            let rawValue = budget.replacingOccurrences(of: ",", with: "")
-            
-                // Match label against valid label enum. Sanitize numeric value; remove '$', ',', and whitespace
-            if let category = EstimateValues.labelLookup[rawLabel.lowercased()] {
+            guard let category = EstimateValues.labelLookup[rawLabel.lowercased()] else { continue }
+
+            for month in 1...12 {
+                let budgetedIndex = 3 + (month - 1) * 3
+                guard budgetedIndex < fields.count else { continue }
+
+                let rawValue = fields[budgetedIndex].replacingOccurrences(of: ",", with: "")
                 guard let cleanValue = rawValue.toDouble() else {
-                    print("Can't convert rawValue to double")
-                    return taxPeriodInput
+                    print("Can't convert rawValue to double for \(rawLabel), month \(month)")
+                    continue
                 }
-                taxPeriodInput[keyPath: category.keyPath] = cleanValue
+                
+                monthlyBudget[month - 1][keyPath: category.monthlyBudgetKeyPath] += cleanValue
+                taxPeriodInput[keyPath: category.keyPath] += cleanValue
             }
         }
         return taxPeriodInput

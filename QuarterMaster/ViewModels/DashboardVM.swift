@@ -76,7 +76,7 @@ class DashboardVM {
         }
         try? context.save()
         
-            // Refresh so computed properties above (federalTaxResults, stateTaxResults,mirmaaHeadroom) reflect period just saved.
+            // Refresh so computed properties above (federalTaxResults, stateTaxResults) reflect period just saved.
         fetchData()
     }
 }

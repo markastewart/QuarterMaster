@@ -59,7 +59,35 @@ enum EstimateValues: String, CaseIterable {
         case .cashDonations: return \.cashDonations
         }
     }
-    
+
+        // Same mapping, but into MonthlyBudgetEntry - used when parsing the Annual estimate's month x month CSV, which populates both a TaxPeriodInput (summed across all 12 months, same behavior as the old single-column budget import) and 12 MonthlyBudgetEntry records (one Budgeted value per month, used later for IRMAA projections).
+    var monthlyBudgetKeyPath: WritableKeyPath<MonthlyBudgetEntry, Double> {
+        switch self {
+        case .pensionAnnuities: return \.pensionAnnuities
+        case .socialSecurity: return \.socialSecurity
+        case .interest: return \.interest
+        case .oilRoyalties: return \.oilRoyalties
+        case .supplementalIncome: return \.supplementalIncome
+        case .ordinaryDividends: return \.ordinaryDividends
+        case .qualifiedDividends: return \.qualifiedDividends
+        case .qualifiedEligibleDividends: return \.qualifiedEligibleDividends
+        case .iraDistributions: return \.iraDistributions
+        case .shortTermCG: return \.shortTermCG
+        case .shortTermGain: return \.shortTermGain
+        case .longTermGain: return \.longTermGain
+        case .reinvestSTCG: return \.reinvestSTCG
+        case .reinvestLTCG: return \.reinvestLTCG
+        case .capitalGainDistribution: return \.capitalGainDistribution
+        case .fedCYWitholding: return \.fedCYWitholding
+        case .fedCYEstimates: return \.fedCYEstimates
+        case .stateCYWitholding: return \.stateCYWitholding
+        case .stateCYEstimates: return \.stateCYEstimates
+        case .deposit529: return \.deposit529
+        case .dividendsNonTaxable: return \.dividendsNonTaxable
+        case .cashDonations: return \.cashDonations
+        }
+    }
+
     static let labelLookup: [String: EstimateValues] = {
         Dictionary(uniqueKeysWithValues: allCases.map { ($0.rawValue.lowercased(), $0) })
     }()

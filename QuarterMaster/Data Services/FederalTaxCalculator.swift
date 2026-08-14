@@ -63,15 +63,16 @@ struct FederalTaxCalculator {
         let annualizedSocSec = taxPeriodInput.socialSecurity * TaxPeriod.factor(for: periodType)
         
         fedEstimate.taxableSocialSecurity = computeTaxableSocialSecurity(annualizedAGI: annualizedAGI, annualizedSS: annualizedSocSec)
-        
-        func computeTaxableSocialSecurity(annualizedAGI: Double, annualizedSS: Double) -> Double {
-            if annualizedAGI > Double(SeasonalConstants.ssMaxThreshold) { return annualizedSS * 0.85 }
-            if annualizedAGI < Double(SeasonalConstants.ssMinThreshold) { return 0 }
-            return annualizedSS * 0.50
-        }
     }
-    
-    
+
+        // Pulled to file scope so IRMAAProjector can reuse same logic against its budget-adjusted income projection.
+    static func computeTaxableSocialSecurity(annualizedAGI: Double, annualizedSS: Double) -> Double {
+        if annualizedAGI > Double(SeasonalConstants.ssMaxThreshold) { return annualizedSS * 0.85 }
+        if annualizedAGI < Double(SeasonalConstants.ssMinThreshold) { return 0 }
+        return annualizedSS * 0.50
+    }
+
+
     static func taxableCapitalGainsCalc(taxPeriodInput: TaxPeriodInput, fedEstimate: TaxEstimate) {
         
         fedEstimate.taxableCapitalGains = taxPeriodInput.shortTermCG + taxPeriodInput.longTermGain + taxPeriodInput.capitalGainDistribution

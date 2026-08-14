@@ -13,7 +13,8 @@ struct QuarterMasterApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             TaxPeriodInput.self,
-            TaxEstimate.self
+            TaxEstimate.self,
+            MonthlyBudgetEntry.self
         ])
 
         // Build the sandboxed Documents/QuarterMaster/ path
