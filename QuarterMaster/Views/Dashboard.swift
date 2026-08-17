@@ -17,12 +17,12 @@ struct QuarterMasterDashboard: View {
     @State private var selectedCycle: EstimationCycle = .quarterly
     @State private var showIRMAAAnalysis = false
     @Query(sort: \TaxPeriodInput.taxPeriodId) private var taxPeriodInput: [TaxPeriodInput]
-    
+
         // Filter depending on selected estimate cycle
     var filteredInput: [TaxPeriodInput] {
         taxPeriodInput.filter { $0.estimationCycle.rawValue == selectedCycle.rawValue }
     }
-    
+
     var body: some View {
         NavigationStack() {
             if let vm = viewModel {
@@ -45,7 +45,7 @@ struct QuarterMasterDashboard: View {
                 }
                 .navigationTitle("")
                 .navigationDestination(isPresented: $showIRMAAAnalysis) {
-                    IRMAAAnalysisView(taxPeriodInput: filteredInput)
+                    IRMAAAnalysis(taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
                 }
                 .onChange(of: taxPeriodInput) { _, newValue in
                     vm.taxPeriodInput = newValue
@@ -57,7 +57,7 @@ struct QuarterMasterDashboard: View {
         }
         .onAppear { if viewModel == nil { viewModel = DashboardVM(modelContext: modelContext) } }
     }
-    
+
         // MARK: - Sidebar
     private func controlSidebarPane(vm: DashboardVM) -> some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -67,33 +67,33 @@ struct QuarterMasterDashboard: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 44, height: 44)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                
+
                 VStack(alignment: .leading) {
                     Text("QuarterMaster " + "\(SeasonalConstants.programYear)" ).font(.title2).bold()
                     Text("Income Tax Estimator").font(.caption).foregroundStyle(.secondary)
                 }
             }
             .padding(.top, 8)
-            
+
             Divider()
-            
+
             Form {
                 EstimationCyclePicker(selectedCycle: $selectedCycle)
             }
-            
+
             Text ("Generate \(selectedCycle.rawValue) Tax Estimate")
                 .font(.headline)
                 .padding([.top, .bottom], 5)
-            
+
             if selectedCycle == .quarterly {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Select Quarter to estimate and identify input file").font(.caption.bold()).foregroundStyle(.secondary)
-                    
+
                     Picker("Quarter", selection: $selectedQuarter) {
                         ForEach(TaxPeriod.allCases.filter { $0 != .annual }) { q in Text(q.rawValue).tag(q) }
                     }
                     .pickerStyle(.segmented)
-                    
+
                     Button { isImporting = true } label: {
                         Label("Create quarterly estimate for \(selectedQuarter.rawValue)", systemImage: "doc.badge.plus")
                             .frame(maxWidth: .infinity)
@@ -105,7 +105,7 @@ struct QuarterMasterDashboard: View {
             else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Identify input file for annual estimate").font(.caption.bold()).foregroundStyle(.secondary)
-                    
+
                     Button {
                         isImporting = true
                         selectedQuarter = .annual
@@ -139,13 +139,13 @@ struct QuarterMasterDashboard: View {
 
 struct EstimationCyclePicker: View {
     @Binding var selectedCycle: EstimationCycle
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             Text("Select Estimation Cycle")
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Picker("", selection: $selectedCycle) {
                 ForEach(EstimationCycle.allCases) { cycle in
                     Text(cycle.rawValue).tag(cycle)
@@ -155,3 +155,4 @@ struct EstimationCyclePicker: View {
         }
     }
 }
+

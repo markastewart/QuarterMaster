@@ -14,9 +14,9 @@ protocol TaxRowProvider : Identifiable {
 
 struct EstimateColumns {
     @TableColumnBuilder<T, Never>
-        static func makeColumns<T: TaxRowProvider>(taxEntity: TaxEntity, estimateCycle: EstimationCycle) -> some TableColumnContent<T, Never> {
-        
-        TableColumn("\(taxEntity.rawValue) Tax Estimate") { row in
+        static func makeColumns<T: TaxRowProvider>(taxEntity: TaxEntity, estimateCycle: EstimationCycle, title: String? = nil) -> some TableColumnContent<T, Never> {
+
+        TableColumn(title ?? "\(taxEntity.rawValue) Tax Estimate") { row in
             Text(row.label).bold()
         }
         .width(min: 200)
