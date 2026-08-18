@@ -34,6 +34,8 @@ struct IRMAAAnalysis: View {
                 Text("Each period blends that period's year-to-date actuals with the remaining months' budgeted income - not a substitute for the true two-year IRMAA lookback.")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+
+                topDriversSection
             } else {
                 Text("No data available yet. Import a quarterly estimate and an annual budget first.")
                     .foregroundStyle(.secondary)
@@ -45,6 +47,33 @@ struct IRMAAAnalysis: View {
         .onAppear {
             if vm == nil {
                 vm = IRMAAAnalysisVM(modelContext: modelContext, taxPeriodInput: taxPeriodInput)
+            }
+        }
+    }
+
+        // Shows what's driving most recent period's Projected MAGI above its Run-Rate AGI - only when that gap is material (>5%, per IRMAAProjector.Result.isMaterialGap). The table above already shows every period; this section is scoped to the latest one, since showing a top-5 breakdown per period at once would be a lot to take in at once.
+    @ViewBuilder
+    private var topDriversSection: some View {
+        if let latestPeriodId = taxPeriodInput.last?.taxPeriodId,
+           let latestResult = vm?.results[latestPeriodId],
+           latestResult.isMaterialGap {
+
+            Divider()
+                .padding(.vertical, 4)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth")
+                    .font(.headline)
+
+                ForEach(latestResult.topFiveDeltas) { item in
+                    HStack {
+                        Text(item.label)
+                            .frame(width: 200, alignment: .leading)
+                        Text(item.delta, format: .currency(code: "USD").precision(.fractionLength(0)))
+                            .frame(width: 110, alignment: .trailing)
+                        Spacer()
+                    }
+                }
             }
         }
     }
@@ -64,10 +93,12 @@ struct IRMAARow: Identifiable {
 extension IRMAARow: TaxRowProvider {}
 
 func irmaaRows(results: [String: IRMAAProjector.Result]) -> [IRMAARow] {
+    let runRateAGIValues = results.mapValues { $0.runRateAGI }
     let magiValues = results.mapValues { $0.projectedMAGI }
     let headroomValues = results.mapValues { $0.headroom }
 
     return [
+        IRMAARow(label: "Run-Rate YTD AGI", values: runRateAGIValues),
         IRMAARow(label: "Projected MAGI", values: magiValues),
         IRMAARow(label: "IRMAA Headroom", values: headroomValues)
     ]
