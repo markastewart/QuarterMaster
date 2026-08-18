@@ -62,7 +62,7 @@ struct IRMAAAnalysis: View {
                 .padding(.vertical, 4)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth")
+                Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth (above Run-Rate)")
                     .font(.headline)
 
                 ForEach(latestResult.topFiveDeltas) { item in
