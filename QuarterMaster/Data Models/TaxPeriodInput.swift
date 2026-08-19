@@ -66,6 +66,37 @@ extension TaxPeriodInput {
         context.insert(newRecord)
         return newRecord
     }
+    
+        /// Creates a detached, unmanaged copy of this record - never inserted into any ModelContext - safe to mutate freely for scenario/what-if calculations without touching the real data. Any TaxEstimate built against this copy (via FederalTaxCalculator/StateTaxCalculator) stays equally detached, since SwiftData's inverse-relationship tracking only reaches objects connected to something already inserted in a context.
+    func detachedCopy() -> TaxPeriodInput {
+        let copy = TaxPeriodInput()
+        copy.taxPeriodId = taxPeriodId
+        copy.estimationCycle = estimationCycle
+        copy.pensionAnnuities = pensionAnnuities
+        copy.socialSecurity = socialSecurity
+        copy.interest = interest
+        copy.oilRoyalties = oilRoyalties
+        copy.supplementalIncome = supplementalIncome
+        copy.otherIncome = otherIncome
+        copy.ordinaryDividends = ordinaryDividends
+        copy.qualifiedDividends = qualifiedDividends
+        copy.qualifiedEligibleDividends = qualifiedEligibleDividends
+        copy.iraDistributions = iraDistributions
+        copy.shortTermCG = shortTermCG
+        copy.shortTermGain = shortTermGain
+        copy.longTermGain = longTermGain
+        copy.reinvestSTCG = reinvestSTCG
+        copy.reinvestLTCG = reinvestLTCG
+        copy.capitalGainDistribution = capitalGainDistribution
+        copy.fedCYWitholding = fedCYWitholding
+        copy.fedCYEstimates = fedCYEstimates
+        copy.stateCYWitholding = stateCYWitholding
+        copy.stateCYEstimates = stateCYEstimates
+        copy.deposit529 = deposit529
+        copy.dividendsNonTaxable = dividendsNonTaxable
+        copy.cashDonations = cashDonations
+        return copy
+    }
 }
 
 enum TaxPeriod: String, CaseIterable, Identifiable, Hashable {

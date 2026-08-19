@@ -15,6 +15,7 @@ struct IRMAAAnalysis: View {
     let estimateCycle: EstimationCycle
 
     @State private var vm: IRMAAAnalysisVM?
+    @State private var conversionAmount: Double?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -36,6 +37,7 @@ struct IRMAAAnalysis: View {
                     .foregroundStyle(.secondary)
 
                 topDriversSection
+                rothConversionWhatIfSection
             } else {
                 Text("No data available yet. Import a quarterly estimate and an annual budget first.")
                     .foregroundStyle(.secondary)
@@ -77,10 +79,69 @@ struct IRMAAAnalysis: View {
             }
         }
     }
+
+        // Compare "no conversion" vs. "convert $X" for the latest period. Purely a scratchpad - nothing here reads or writes real TaxPeriodInput/TaxEstimate data; if a conversion is actually made, it'll show up for real once reflected in a future import.
+    @ViewBuilder
+    private var rothConversionWhatIfSection: some View {
+        if let latestInput = taxPeriodInput.last, let vm {
+            Divider()
+                .padding(.vertical, 4)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Roth Conversion What-If (\(latestInput.taxPeriodId))")
+                    .font(.headline)
+
+                HStack {
+                    Text("Conversion Amount:")
+                    TextField("Amount", value: $conversionAmount, format: .currency(code: "USD").precision(.fractionLength(0)))
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 140)
+                }
+
+                if let amount = conversionAmount, amount > 0,
+                   let comparison = vm.whatIfComparison(for: latestInput, conversionAmount: amount) {
+
+                    whatIfHeaderRow
+                    
+                    whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction)
+                    whatIfRow(label: "Federal Tax Due", current: comparison.current.federalTaxDue, withConversion: comparison.withConversion.federalTaxDue)
+                    whatIfRow(label: "State Tax Due", current: comparison.current.stateTaxDue, withConversion: comparison.withConversion.stateTaxDue)
+                    whatIfRow(label: "IRMAA Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, flagIfNegative: true)
+
+                    if comparison.withConversion.irmaaHeadroom < 0 {
+                        Text("This amount would push you over the IRMAA threshold for this period.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+        }
+    }
+
+    private var whatIfHeaderRow: some View {
+        HStack {
+            Text("").frame(width: 160, alignment: .leading)
+            Text("Current").bold().frame(width: 130, alignment: .trailing)
+            Text("With Conversion").bold().frame(width: 130, alignment: .trailing)
+            Spacer()
+        }
+    }
+
+    private func whatIfRow(label: String, current: Double, withConversion: Double, flagIfNegative: Bool = false) -> some View {
+        HStack {
+            Text(label)
+                .frame(width: 160, alignment: .leading)
+            Text(current, format: .currency(code: "USD").precision(.fractionLength(0)))
+                .frame(width: 130, alignment: .trailing)
+            Text(withConversion, format: .currency(code: "USD").precision(.fractionLength(0)))
+                .frame(width: 130, alignment: .trailing)
+                .foregroundColor(flagIfNegative && withConversion < 0 ? .red : .primary)
+            Spacer()
+        }
+    }
 }
 
-    // Support types/functions for the view - same shape as TaxSummaryRow/summaryRows in
-    // EstimateSummary.swift, so this table renders through the exact same EstimateColumns builder.
+    // Support types/functions for the view - same shape as TaxSummaryRow/summaryRows in EstimateSummary.swift, so this table renders through the exact same EstimateColumns builder.
 struct IRMAARow: Identifiable {
     let label: String
     let values: [String: Double]
