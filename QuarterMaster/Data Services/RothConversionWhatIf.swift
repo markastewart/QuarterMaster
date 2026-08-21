@@ -21,6 +21,8 @@ struct RothConversionWhatIf {
         let federalTaxDue: Double
         let stateTaxDue: Double
         let irmaaHeadroom: Double
+        let tier1Headroom: Double
+        let tier2Headroom: Double
         let specialDeduction: Double
     }
 
@@ -49,6 +51,8 @@ struct RothConversionWhatIf {
             federalTaxDue: fedEstimate.taxEstimate,
             stateTaxDue: stateEstimate.taxEstimate,
             irmaaHeadroom: currentIRMAAResult.headroom,
+            tier1Headroom: currentIRMAAResult.tier1Headroom,
+            tier2Headroom: currentIRMAAResult.tier2Headroom,
             specialDeduction: fedEstimate.additionalDeductions
         )
 
@@ -61,8 +65,8 @@ struct RothConversionWhatIf {
 
             // --- Federal ---
         let whatIfFedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: whatIfInput)
-        whatIfFedEstimate.taxableSocialSecurity = fedEstimate.taxableSocialSecurity   // unaffected: IRA distributions aren't part of the SS taxability test
-        whatIfFedEstimate.taxableCapitalGains = fedEstimate.taxableCapitalGains       // unaffected
+        whatIfFedEstimate.taxableSocialSecurity = fedEstimate.taxableSocialSecurity
+        whatIfFedEstimate.taxableCapitalGains = fedEstimate.taxableCapitalGains
         whatIfFedEstimate.adjustedGrossIncome = fedEstimate.adjustedGrossIncome + conversionAmount
 
         FederalTaxCalculator.additionalDeductionsCalc(fedEstimate: whatIfFedEstimate)
@@ -88,6 +92,8 @@ struct RothConversionWhatIf {
             federalTaxDue: whatIfFedEstimate.taxEstimate,
             stateTaxDue: whatIfStateEstimate.taxEstimate,
             irmaaHeadroom: whatIfIRMAAResult.headroom,
+            tier1Headroom: whatIfIRMAAResult.tier1Headroom,
+            tier2Headroom: whatIfIRMAAResult.tier2Headroom,
             specialDeduction: whatIfFedEstimate.additionalDeductions
         )
 

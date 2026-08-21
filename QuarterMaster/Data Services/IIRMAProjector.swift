@@ -23,11 +23,13 @@ struct IRMAAProjector {
         let runRateAGI: Double
         let projectedMAGI: Double
         let headroom: Double
-
-            // The AGI-component categories - eligible for the "top drivers" ranking.
+        let tier1Headroom: Double
+        let tier2Headroom: Double
         let categoryDeltas: [CategoryDelta]
 
         var isOverThreshold: Bool { headroom < 0 }
+        var isOverTier1Threshold: Bool { tier1Headroom < 0 }
+        var isOverTier2Threshold: Bool { tier2Headroom < 0 }
 
             // Only worth surfacing "what's driving this" once the budget-aware projection has pulled meaningfully ahead of the simple run-rate AGI - below that, the divergence isn't material enough to matter.
         var isMaterialGap: Bool {
@@ -108,7 +110,9 @@ struct IRMAAProjector {
         let projectedNonTaxableDividends = taxPeriodInput.dividendsNonTaxable + remainingBudget(\.dividendsNonTaxable)
 
         let projectedMAGI = projectedAGI + projectedNonTaxableDividends
-        let headroom = SeasonalConstants.irmaaThresholdMFJ - projectedMAGI
+        let headroom = SeasonalConstants.irmaaTier0CeilingMFJ - projectedMAGI
+        let tier1Headroom = SeasonalConstants.irmaaTier1CeilingMFJ - projectedMAGI
+        let tier2Headroom = SeasonalConstants.irmaaTier2CeilingMFJ - projectedMAGI
 
         let categoryDeltas = [
             CategoryDelta(label: "Interest", runRateValue: runRateInterest, projectedValue: projectedInterest),
@@ -124,6 +128,8 @@ struct IRMAAProjector {
             runRateAGI: fedEstimate.adjustedGrossIncome,
             projectedMAGI: projectedMAGI,
             headroom: headroom,
+            tier1Headroom: tier1Headroom,
+            tier2Headroom: tier2Headroom,
             categoryDeltas: categoryDeltas
         )
     }

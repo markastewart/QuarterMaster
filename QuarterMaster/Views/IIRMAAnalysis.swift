@@ -16,6 +16,8 @@ struct IRMAAAnalysis: View {
 
     @State private var vm: IRMAAAnalysisVM?
     @State private var conversionAmount: Double?
+    @State private var conversionAmountText: String = ""
+    @FocusState private var amountFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -28,7 +30,7 @@ struct IRMAAAnalysis: View {
                 .id(estimateCycle)
                 .frame(height: CGFloat(rows.count) * 28 + 30)
 
-                Text("2026 MFJ threshold: \(SeasonalConstants.irmaaThresholdMFJ, format: .currency(code: "USD").precision(.fractionLength(0)))")
+                Text("2026 Tier 0 ceiling: \(SeasonalConstants.irmaaTier0CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0))) · Tier 1 ceiling: \(SeasonalConstants.irmaaTier1CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0))) · Tier 2 ceiling: \(SeasonalConstants.irmaaTier2CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0)))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -93,9 +95,18 @@ struct IRMAAAnalysis: View {
 
                 HStack {
                     Text("Conversion Amount:")
-                    TextField("Amount", value: $conversionAmount, format: .currency(code: "USD").precision(.fractionLength(0)))
+                    TextField("Amount", text: $conversionAmountText)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 140)
+                        .focused($amountFieldFocused)
+                        .onSubmit {
+                            commitConversionAmount()
+                        }
+                        .onChange(of: amountFieldFocused) { _, isFocused in
+                            if !isFocused {
+                                commitConversionAmount()
+                            }
+                        }
                 }
 
                 if let amount = conversionAmount, amount > 0,
@@ -106,16 +117,37 @@ struct IRMAAAnalysis: View {
                     whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction)
                     whatIfRow(label: "Federal Tax Due", current: comparison.current.federalTaxDue, withConversion: comparison.withConversion.federalTaxDue)
                     whatIfRow(label: "State Tax Due", current: comparison.current.stateTaxDue, withConversion: comparison.withConversion.stateTaxDue)
-                    whatIfRow(label: "IRMAA Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, flagIfNegative: true)
+                    whatIfRow(label: "Tier 0 IRMAA Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, flagIfNegative: true)
 
                     if comparison.withConversion.irmaaHeadroom < 0 {
-                        Text("This amount would push you over the IRMAA threshold for this period.")
+                        Text("This amount would push you over the Tier 0 IRMAA threshold for this period.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    
+                    whatIfRow(label: "Tier 1 IRMAA Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, flagIfNegative: true)
+                    
+                    if comparison.withConversion.tier1Headroom < 0 {
+                        Text("This amount would push you over the Tier 1→2 IRMAA threshold for this period.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    
+                    whatIfRow(label: "Tier 2 IRMAA Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, flagIfNegative: true)
+                    
+                    if comparison.withConversion.tier2Headroom < 0 {
+                        Text("This amount would push you over the Tier 2→3 IRMAA threshold for this period.")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
                 }
             }
         }
+    }
+    
+    private func commitConversionAmount() {
+        let cleaned = conversionAmountText.filter { $0.isNumber || $0 == "." }
+        conversionAmount = Double(cleaned)
     }
 
     private var whatIfHeaderRow: some View {
@@ -161,6 +193,8 @@ func irmaaRows(results: [String: IRMAAProjector.Result]) -> [IRMAARow] {
     return [
         IRMAARow(label: "Run-Rate YTD AGI", values: runRateAGIValues),
         IRMAARow(label: "Projected MAGI", values: magiValues),
-        IRMAARow(label: "IRMAA Headroom", values: headroomValues)
+        IRMAARow(label: "Tier 0 IRMAA Headroom", values: headroomValues),
+        IRMAARow(label: "Tier 1 IRMAA Headroom", values: results.mapValues { $0.tier1Headroom }),
+        IRMAARow(label: "Tier 2 IRMAA Headroom", values: results.mapValues { $0.tier2Headroom })
     ]
 }
