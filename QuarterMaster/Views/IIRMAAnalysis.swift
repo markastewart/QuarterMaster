@@ -38,7 +38,8 @@ struct IRMAAAnalysis: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 
-                topDriversSection
+                estimateCycle == .quarterly ? topDriversSection : nil
+                
                 rothConversionWhatIfSection
             } else {
                 Text("No data available yet. Import a quarterly estimate and an annual budget first.")
