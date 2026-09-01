@@ -29,6 +29,7 @@ struct EstimateDrillDown: View {
         DrilldownRowConfig(displayName: "Total Deductions") { _, estimate in estimate?.totalDeductions ?? 0 },
         DrilldownRowConfig(displayName: "Taxable Income") { _, estimate in estimate?.taxableIncome ?? 0 },
         DrilldownRowConfig(displayName: "Total Tax") { _, estimate in estimate?.totalTax ?? 0 },
+        DrilldownRowConfig(displayName: "Marginal Tax Rate", formatStyle: .percent) { _, estimate in estimate?.marginalTaxRate ?? 0 },
         DrilldownRowConfig(displayName: "Net Investment Income Tax") { _, estimate in estimate?.netInvestmentIncomeTax ?? 0 },
         DrilldownRowConfig(displayName: "Total Payments") { _, estimate in estimate?.taxesPaid ?? 0 },
         DrilldownRowConfig(displayName: "Tax Balance") { _, estimate in estimate?.taxEstimate ?? 0 }
@@ -72,12 +73,20 @@ struct EstimateDrillDown: View {
     // Support functions, structures for the view.
 struct DrilldownRowConfig {
     let displayName: String
+    let formatStyle: RowFormatStyle
     let extract: (TaxPeriodInput?, TaxEstimate?) -> Double
+    
+    init(displayName: String, formatStyle: RowFormatStyle = .currency, extract: @escaping (TaxPeriodInput?, TaxEstimate?) -> Double) {
+        self.displayName = displayName
+        self.formatStyle = formatStyle
+        self.extract = extract
+    }
 }
 
 struct DrilldownRow: Identifiable {
     let label: String
     let values: [String: Double]
+    let formatStyle: RowFormatStyle
     var id: String { label }
     
     subscript(key: String) -> Double {
@@ -105,6 +114,6 @@ func drilldownRows(configs: [DrilldownRowConfig], taxEntity: TaxEntity, taxPerio
             let value=config.extract(dataRec.0, dataRec.1)
             rowValues[period]=value
         }
-        return DrilldownRow(label: config.displayName, values: rowValues)
+        return DrilldownRow(label: config.displayName, values: rowValues, formatStyle: config.formatStyle)
     }
 }

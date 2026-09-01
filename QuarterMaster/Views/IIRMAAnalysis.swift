@@ -173,6 +173,7 @@ struct IRMAAAnalysis: View {
 struct IRMAARow: Identifiable {
     let label: String
     let values: [String: Double]
+    let formatStyle: RowFormatStyle = .currency
     var id: String { label }
     
     subscript(key: String) -> Double {

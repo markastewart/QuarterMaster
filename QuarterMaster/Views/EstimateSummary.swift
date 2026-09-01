@@ -14,18 +14,27 @@ struct EstimateSummary: View {
     let estimateCycle: EstimationCycle
     
     @State private var selectedRowID: String?
-
-    let taxDisplayConfigs: [TaxEstimateResultMap] = [
+    
+    let federalDisplayConfigs: [TaxEstimateResultMap] = [
+        TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
+        TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
+        TaxEstimateResultMap(keyPath: \.marginalTaxRate, displayName: "Marginal Tax Rate", formatStyle: .percent),
+        TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
+        TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
+    ]
+    
+    let stateDisplayConfigs: [TaxEstimateResultMap] = [
         TaxEstimateResultMap(keyPath: \.taxableIncome, displayName: "Annualized Taxable Income"),
         TaxEstimateResultMap(keyPath: \.totalTax, displayName: "Annualized Total Tax"),
         TaxEstimateResultMap(keyPath: \.taxesPaid, displayName: "Taxes Paid YTD"),
         TaxEstimateResultMap(keyPath: \.taxEstimate, displayName: "Estimated Tax Due"),
     ]
-
+    
     var body: some View {
             // Identify the tax entity and extract the data rows to present.
         let taxEntity = isFederal ? TaxEntity.federal : TaxEntity.state
-        let rows = summaryRows(taxPeriodInput: taxPeriodInput, configs: taxDisplayConfigs, taxEntity: taxEntity)
+        let configs = isFederal ? federalDisplayConfigs : stateDisplayConfigs
+        let rows = summaryRows(taxPeriodInput: taxPeriodInput, configs: configs, taxEntity: taxEntity)
         
         VStack(alignment: .leading) {
             Table(rows, selection: $selectedRowID) {
@@ -45,20 +54,23 @@ struct EstimateSummary: View {
     // Support functions, structures for the view.
 struct TaxEstimateResultMap {
     let displayName: String
+    let formatStyle: RowFormatStyle
     private let extract: (TaxPeriodInput, TaxEstimate?) -> Double
-
+    
         // Existing usage pattern: pull a single Double straight off the TaxEstimate.
-    init(keyPath: KeyPath<TaxEstimate, Double>, displayName: String) {
+    init(keyPath: KeyPath<TaxEstimate, Double>, displayName: String, formatStyle: RowFormatStyle = .currency) {
         self.displayName = displayName
+        self.formatStyle = formatStyle
         self.extract = { _, estimate in estimate?[keyPath: keyPath] ?? 0.0 }
     }
-
+    
         // Custom calculation that can pull from both the period's input and its estimate.
-    init(displayName: String, extract: @escaping (TaxPeriodInput, TaxEstimate?) -> Double) {
+    init(displayName: String, formatStyle: RowFormatStyle = .currency, extract: @escaping (TaxPeriodInput, TaxEstimate?) -> Double) {
         self.displayName = displayName
+        self.formatStyle = formatStyle
         self.extract = extract
     }
-
+    
     func value(input: TaxPeriodInput, estimate: TaxEstimate?) -> Double {
         extract(input, estimate)
     }
@@ -67,6 +79,7 @@ struct TaxEstimateResultMap {
 struct TaxSummaryRow: Identifiable {
     let label: String
     let values: [String: Double]
+    let formatStyle: RowFormatStyle
     var id: String { label }
     
     subscript(key: String) -> Double {
@@ -92,7 +105,7 @@ func summaryRows(taxPeriodInput: [TaxPeriodInput], configs: [TaxEstimateResultMa
             let estimate = results.first(where: { $0.taxPeriodInput?.taxPeriodId == period })
             rowValues[period] = config.value(input: inputRecord, estimate: estimate)
         }
-        return TaxSummaryRow(label: config.displayName, values: rowValues)
+        return TaxSummaryRow(label: config.displayName, values: rowValues, formatStyle: config.formatStyle)
     }
 }
 

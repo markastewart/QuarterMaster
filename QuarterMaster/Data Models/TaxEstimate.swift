@@ -16,6 +16,7 @@ final class TaxEstimate {
     var incomeAdditions = 0.0
     var taxableCapitalGains = 0.0
     var netInvestmentIncomeTax = 0.0
+    var marginalTaxRate = 0.0
     var additionalDeductions = 0.0
     var totalDeductions = 0.0
     var taxableIncome = 0.0
@@ -52,6 +53,7 @@ extension TaxEstimate: CustomStringConvertible {
           incomeAdditions:          \(incomeAdditions)
           taxableCapitalGains:      \(taxableCapitalGains)
           netInvestmentIncomeTax:   \(netInvestmentIncomeTax)
+          marginalTaxRate:          \(marginalTaxRate)
           additionalDeductions:     \(additionalDeductions)
           totalDeductions:          \(totalDeductions)
           taxableIncome:            \(taxableIncome)

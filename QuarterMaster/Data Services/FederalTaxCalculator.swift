@@ -67,7 +67,7 @@ struct FederalTaxCalculator {
         
         fedEstimate.taxableSocialSecurity = computeTaxableSocialSecurity(annualizedAGI: annualizedAGI, annualizedSS: annualizedSocSec)
     }
-
+    
         // Pulled to file scope so IRMAAProjector can reuse same logic against its budget-adjusted income projection.
     static func computeTaxableSocialSecurity(annualizedAGI: Double, annualizedSS: Double) -> Double {
         if annualizedAGI > Double(SeasonalConstants.ssMaxThreshold) { return annualizedSS * 0.85 }
@@ -112,7 +112,24 @@ struct FederalTaxCalculator {
         
         let taxOnOrdinary = calculateTaxFromTables(taxableIncome: ordinaryIncome)
         
+            // Marginal rate = the bracket rate on the last dollar of ordinary income. Capital gains/qualified dividends are taxed flat at 15% above and don't move this bracket, so they're excluded here.
+        fedEstimate.marginalTaxRate = marginalRate(for: ordinaryIncome)
+        
         return taxOnGains + taxOnOrdinary
+    }
+    
+    
+        // marginalRate - rate of the bracket containing the last dollar of ordinary taxable income. Mirrors same bracket walk as calculateTaxFromTables below (kept separate so that function's existing signature/callers, e.g. IRMAAProjector, are unaffected).
+    static func marginalRate(for taxableIncome: Double) -> Double {
+        guard taxableIncome > 0 else { return 0 }
+        
+        for bracket in SeasonalConstants.IRSTaxTable.mfjBrackets {
+            let bracketMax = bracket.maxIncome ?? Double.infinity
+            if taxableIncome <= bracketMax {
+                return bracket.rate
+            }
+        }
+        return SeasonalConstants.IRSTaxTable.mfjBrackets.last?.rate ?? 0
     }
     
     
