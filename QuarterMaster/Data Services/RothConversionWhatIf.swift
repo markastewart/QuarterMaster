@@ -24,6 +24,11 @@ struct RothConversionWhatIf {
         let tier1Headroom: Double
         let tier2Headroom: Double
         let specialDeduction: Double
+        let fedAGI: Double
+        let fedTotalTax: Double
+        let fedMarginalRate: Double
+        let stateAGI: Double
+        let stateTotalTax: Double
     }
     
     struct Comparison {
@@ -37,6 +42,11 @@ struct RothConversionWhatIf {
         var tier1HeadroomDelta: Double { withConversion.tier1Headroom - current.tier1Headroom }
         var tier2HeadroomDelta: Double { withConversion.tier2Headroom - current.tier2Headroom }
         var specialDeductionDelta: Double { withConversion.specialDeduction - current.specialDeduction }
+        var fedAGIDelta: Double { withConversion.fedAGI - current.fedAGI }
+        var fedTotalTaxDelta: Double { withConversion.fedTotalTax - current.fedTotalTax }
+        var fedMarginalRateDelta: Double { withConversion.fedMarginalRate - current.fedMarginalRate }
+        var stateAGIDelta: Double { withConversion.stateAGI - current.stateAGI }
+        var stateTotalTaxDelta: Double { withConversion.stateTotalTax - current.stateTotalTax }
     }
     
         // fedEstimate/stateEstimate/currentIRMAAResult should be the real, already-computed values for taxPeriodInput - reused directly for the "current" side rather than recomputed.
@@ -55,7 +65,12 @@ struct RothConversionWhatIf {
             irmaaHeadroom: currentIRMAAResult.headroom,
             tier1Headroom: currentIRMAAResult.tier1Headroom,
             tier2Headroom: currentIRMAAResult.tier2Headroom,
-            specialDeduction: fedEstimate.additionalDeductions
+            specialDeduction: fedEstimate.additionalDeductions,
+            fedAGI: fedEstimate.adjustedGrossIncome,
+            fedTotalTax: fedEstimate.totalTax,
+            fedMarginalRate: fedEstimate.marginalTaxRate,
+            stateAGI: stateEstimate.adjustedGrossIncome,
+            stateTotalTax: stateEstimate.totalTax
         )
         
         guard conversionAmount > 0 else {
@@ -97,9 +112,15 @@ struct RothConversionWhatIf {
             irmaaHeadroom: whatIfIRMAAResult.headroom,
             tier1Headroom: whatIfIRMAAResult.tier1Headroom,
             tier2Headroom: whatIfIRMAAResult.tier2Headroom,
-            specialDeduction: whatIfFedEstimate.additionalDeductions
+            specialDeduction: whatIfFedEstimate.additionalDeductions,
+            fedAGI: whatIfFedEstimate.adjustedGrossIncome,
+            fedTotalTax: whatIfFedEstimate.totalTax,
+            fedMarginalRate: whatIfFedEstimate.marginalTaxRate,
+            stateAGI: whatIfStateEstimate.adjustedGrossIncome,
+            stateTotalTax: whatIfStateEstimate.totalTax
         )
         
         return Comparison(conversionAmount: conversionAmount, current: current, withConversion: withConversion)
     }
 }
+

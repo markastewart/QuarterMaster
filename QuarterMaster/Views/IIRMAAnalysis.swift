@@ -115,12 +115,15 @@ struct IRMAAAnalysis: View {
                     
                     whatIfHeaderRow
                     
-                    whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction)
-                    whatIfRow(label: "Federal Tax Due", current: comparison.current.federalTaxDue, withConversion: comparison.withConversion.federalTaxDue)
-                    whatIfRow(label: "State Tax Due", current: comparison.current.stateTaxDue, withConversion: comparison.withConversion.stateTaxDue)
-                    whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, flagIfNegative: true)
-                    whatIfRow(label: "Tier 1 Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, flagIfNegative: true)
-                    whatIfRow(label: "Tier 2 Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, flagIfNegative: true)
+                    whatIfRow(label: "Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta)
+                    whatIfRow(label: "Fed Total Tax", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta)
+                    whatIfRow(label: "Fed Tax Marginal Rate", current: comparison.current.fedMarginalRate, withConversion: comparison.withConversion.fedMarginalRate, delta: nil, formatStyle: .percent)
+                    whatIfRow(label: "State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta)
+                    whatIfRow(label: "State Total Tax", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta)
+                    whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction, delta: comparison.specialDeductionDelta)
+                    whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, delta: comparison.irmaaHeadroomDelta, flagIfNegative: true)
+                    whatIfRow(label: "Tier 1 Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, delta: comparison.tier1HeadroomDelta, flagIfNegative: true)
+                    whatIfRow(label: "Tier 2 Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, delta: comparison.tier2HeadroomDelta, flagIfNegative: true)
                     
                     if comparison.withConversion.irmaaHeadroom < 0 {
                         Text("This amount would push you over the Tier 0→1 IRMAA threshold for this period.")
@@ -152,20 +155,44 @@ struct IRMAAAnalysis: View {
             Text("").frame(width: 160, alignment: .leading)
             Text("Current").bold().frame(width: 130, alignment: .trailing)
             Text("With Conversion").bold().frame(width: 130, alignment: .trailing)
+            Text("Delta").bold().frame(width: 130, alignment: .trailing)
             Spacer()
         }
     }
     
-    private func whatIfRow(label: String, current: Double, withConversion: Double, flagIfNegative: Bool = false) -> some View {
+        // delta is dollar-denominated (withConversion - current) and shown in its own column; pass nil to
+        // leave that column blank, which we do for the Marginal Rate row since a rate difference isn't a dollar delta.
+    private func whatIfRow(label: String, current: Double, withConversion: Double, delta: Double?, formatStyle: RowFormatStyle = .currency, flagIfNegative: Bool = false) -> some View {
         HStack {
             Text(label)
                 .frame(width: 160, alignment: .leading)
-            Text(current, format: .currency(code: "USD").precision(.fractionLength(0)))
+            whatIfValueText(current, formatStyle: formatStyle)
                 .frame(width: 130, alignment: .trailing)
-            Text(withConversion, format: .currency(code: "USD").precision(.fractionLength(0)))
+            whatIfValueText(withConversion, formatStyle: formatStyle)
                 .frame(width: 130, alignment: .trailing)
                 .foregroundColor(flagIfNegative && withConversion < 0 ? .red : .primary)
+            Group {
+                if let delta {
+                    whatIfValueText(delta, formatStyle: .currency)
+                } else {
+                    Text("—")
+                }
+            }
+            .frame(width: 130, alignment: .trailing)
+            .foregroundStyle(.secondary)
             Spacer()
+        }
+    }
+    
+        // whatIfValueText - same currency/percent split as EstimateColumns.cellText, just for this view's
+        // hand-built HStack rows rather than a Table (this view doesn't route through TaxRowProvider).
+    @ViewBuilder
+    private func whatIfValueText(_ value: Double, formatStyle: RowFormatStyle) -> some View {
+        switch formatStyle {
+            case .currency:
+                Text(value, format: .currency(code: "USD").precision(.fractionLength(0)))
+            case .percent:
+                Text(value, format: .percent.precision(.fractionLength(1)))
         }
     }
 }
