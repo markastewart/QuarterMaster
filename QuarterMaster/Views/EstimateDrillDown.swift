@@ -29,6 +29,7 @@ struct EstimateDrillDown: View {
         DrilldownRowConfig(displayName: "Total Deductions") { _, estimate in estimate?.totalDeductions ?? 0 },
         DrilldownRowConfig(displayName: "Taxable Income") { _, estimate in estimate?.taxableIncome ?? 0 },
         DrilldownRowConfig(displayName: "Total Tax") { _, estimate in estimate?.totalTax ?? 0 },
+        DrilldownRowConfig(displayName: "Net Investment Income Tax") { _, estimate in estimate?.netInvestmentIncomeTax ?? 0 },
         DrilldownRowConfig(displayName: "Total Payments") { _, estimate in estimate?.taxesPaid ?? 0 },
         DrilldownRowConfig(displayName: "Tax Balance") { _, estimate in estimate?.taxEstimate ?? 0 }
     ]

@@ -34,6 +34,9 @@ struct FederalTaxCalculator {
             // Social security is already annualized so add it to remainder of annualized AGI.
         fedEstimate.adjustedGrossIncome = (quarterlyAdjustedGrossIncome * TaxPeriod.factor(for: taxPeriodInput.taxPeriodId)) + fedEstimate.taxableSocialSecurity
         
+            // Calculate Net Investment Income Tax (Form 8960) - depends on adjustedGrossIncome and taxableCapitalGains above.
+        netInvestmentIncomeTaxCalc(taxPeriodInput: taxPeriodInput, fedEstimate: fedEstimate)
+        
         additionalDeductionsCalc(fedEstimate: fedEstimate)
         
             // Calculate total deductions and taxable income
@@ -41,7 +44,7 @@ struct FederalTaxCalculator {
         
         fedEstimate.taxableIncome = fedEstimate.adjustedGrossIncome - fedEstimate.totalDeductions
         
-        fedEstimate.totalTax = annualTaxCalc(taxPeriodInput: taxPeriodInput, fedEstimate: fedEstimate) - SeasonalConstants.foreignTaxPaid
+        fedEstimate.totalTax = annualTaxCalc(taxPeriodInput: taxPeriodInput, fedEstimate: fedEstimate) - SeasonalConstants.foreignTaxPaid + fedEstimate.netInvestmentIncomeTax
         
         fedEstimate.taxesPaid = taxPeriodInput.fedCYWitholding + taxPeriodInput.fedCYEstimates
         
@@ -54,8 +57,8 @@ struct FederalTaxCalculator {
     
         // taxableSocialSecurityCalc - Calculate taxable social security for estimate.
     static func taxableSocialSecurityCalc(fedEstimate: TaxEstimate, taxPeriodInput: TaxPeriodInput) {
-
-        // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
+        
+            // Keep it simple - if annualized pensions, interest, other income, ordinary dividends > MaxThreshold, taxable social security is 85%; if less that MinThreshold its 0, otherwise 0.50.
         
         guard let periodType = fedEstimate.taxPeriodInput?.taxPeriodId else { return }
         let annualizedAGI = (taxPeriodInput.pensionAnnuities + taxPeriodInput.ordinaryDividends + taxPeriodInput.otherIncome + taxPeriodInput.interest) * TaxPeriod.factor(for: periodType)
@@ -71,11 +74,22 @@ struct FederalTaxCalculator {
         if annualizedAGI < Double(SeasonalConstants.ssMinThreshold) { return 0 }
         return annualizedSS * 0.50
     }
-
-
+    
+    
     static func taxableCapitalGainsCalc(taxPeriodInput: TaxPeriodInput, fedEstimate: TaxEstimate) {
         
         fedEstimate.taxableCapitalGains = taxPeriodInput.shortTermCG + taxPeriodInput.longTermGain + taxPeriodInput.capitalGainDistribution
+    }
+    
+        // netInvestmentIncomeTaxCalc - 3.8% NIIT (Form 8960) on the lesser of net investment income or MAGI in excess of threshold. IRA distributions, pension/annuity income, and Social Security excluded from Net Investment Income even though they count toward AGI/MAGI - this matters specifically for Roth conversions, which flow through iraDistributions and must never be treated as investment income here, even though a conversion can still trigger/increase NIIT indirectly by raising MAGI above threshold.
+    static func netInvestmentIncomeTaxCalc(taxPeriodInput: TaxPeriodInput, fedEstimate: TaxEstimate) {
+        let factor = TaxPeriod.factor(for: taxPeriodInput.taxPeriodId)
+        let netInvestmentIncome = (taxPeriodInput.interest + taxPeriodInput.ordinaryDividends + fedEstimate.taxableCapitalGains) * factor
+        
+        let excessMAGI = max(0, fedEstimate.adjustedGrossIncome - SeasonalConstants.niitThresholdMFJ)
+        let niitBase = min(netInvestmentIncome, excessMAGI)
+        
+        fedEstimate.netInvestmentIncomeTax = max(0, niitBase) * SeasonalConstants.niitRate
     }
     
     static func additionalDeductionsCalc(fedEstimate: TaxEstimate) {

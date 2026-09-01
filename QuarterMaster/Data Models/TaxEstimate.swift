@@ -15,6 +15,7 @@ final class TaxEstimate {
     var adjustedGrossIncome = 0.0
     var incomeAdditions = 0.0
     var taxableCapitalGains = 0.0
+    var netInvestmentIncomeTax = 0.0
     var additionalDeductions = 0.0
     var totalDeductions = 0.0
     var taxableIncome = 0.0
@@ -25,7 +26,7 @@ final class TaxEstimate {
     var stateExemptions = 0.0
     
     var taxPeriodInput: TaxPeriodInput?
-        
+    
     init(taxEntity: String, taxPeriodInput: TaxPeriodInput) {
         self.taxEntity = taxEntity
         self.taxPeriodInput = taxPeriodInput
@@ -50,6 +51,7 @@ extension TaxEstimate: CustomStringConvertible {
           adjustedGrossIncome:      \(adjustedGrossIncome)
           incomeAdditions:          \(incomeAdditions)
           taxableCapitalGains:      \(taxableCapitalGains)
+          netInvestmentIncomeTax:   \(netInvestmentIncomeTax)
           additionalDeductions:     \(additionalDeductions)
           totalDeductions:          \(totalDeductions)
           taxableIncome:            \(taxableIncome)

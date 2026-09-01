@@ -13,31 +13,31 @@ struct IRMAAAnalysis: View {
     @Environment(\.modelContext) private var modelContext
     let taxPeriodInput: [TaxPeriodInput]
     let estimateCycle: EstimationCycle
-
+    
     @State private var vm: IRMAAAnalysisVM?
-    @State private var conversionAmount: Double?
     @State private var conversionAmountText: String = ""
     @FocusState private var amountFieldFocused: Bool
-
+    @State private var conversionAmount: Double?
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let vm, !vm.results.isEmpty {
                 let rows = irmaaRows(results: vm.results)
-
+                
                 Table(rows) {
                     EstimateColumns.makeColumns(taxEntity: .federal, estimateCycle: estimateCycle, title: "IRMAA Analysis")
                 }
                 .id(estimateCycle)
                 .frame(height: CGFloat(rows.count) * 28 + 30)
-
+                
                 Text("2026 Tier 0 ceiling: \(SeasonalConstants.irmaaTier0CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0))) · Tier 1 ceiling: \(SeasonalConstants.irmaaTier1CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0))) · Tier 2 ceiling: \(SeasonalConstants.irmaaTier2CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0)))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-
+                
                 Text("Each period blends that period's year-to-date actuals with the remaining months' budgeted income - not a substitute for the true two-year IRMAA lookback.")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-
+                
                 topDriversSection
                 rothConversionWhatIfSection
             } else {
@@ -54,21 +54,21 @@ struct IRMAAAnalysis: View {
             }
         }
     }
-
+    
         // Shows what's driving most recent period's Projected MAGI above its Run-Rate AGI - only when that gap is material (>5%, per IRMAAProjector.Result.isMaterialGap). The table above already shows every period; this section is scoped to the latest one, since showing a top-5 breakdown per period at once would be a lot to take in at once.
     @ViewBuilder
     private var topDriversSection: some View {
         if let latestPeriodId = taxPeriodInput.last?.taxPeriodId,
            let latestResult = vm?.results[latestPeriodId],
            latestResult.isMaterialGap {
-
+            
             Divider()
                 .padding(.vertical, 4)
-
+            
             VStack(alignment: .leading, spacing: 6) {
                 Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth (above Run-Rate)")
                     .font(.headline)
-
+                
                 ForEach(latestResult.topFiveDeltas) { item in
                     HStack {
                         Text(item.label)
@@ -81,18 +81,18 @@ struct IRMAAAnalysis: View {
             }
         }
     }
-
+    
         // Compare "no conversion" vs. "convert $X" for the latest period. Purely a scratchpad - nothing here reads or writes real TaxPeriodInput/TaxEstimate data; if a conversion is actually made, it'll show up for real once reflected in a future import.
     @ViewBuilder
     private var rothConversionWhatIfSection: some View {
         if let latestInput = taxPeriodInput.last, let vm {
             Divider()
                 .padding(.vertical, 4)
-
+            
             VStack(alignment: .leading, spacing: 10) {
                 Text("Roth Conversion What-If (\(latestInput.taxPeriodId))")
                     .font(.headline)
-
+                
                 HStack {
                     Text("Conversion Amount:")
                     TextField("Amount", text: $conversionAmountText)
@@ -108,33 +108,29 @@ struct IRMAAAnalysis: View {
                             }
                         }
                 }
-
+                
                 if let amount = conversionAmount, amount > 0,
                    let comparison = vm.whatIfComparison(for: latestInput, conversionAmount: amount) {
-
+                    
                     whatIfHeaderRow
                     
                     whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction)
                     whatIfRow(label: "Federal Tax Due", current: comparison.current.federalTaxDue, withConversion: comparison.withConversion.federalTaxDue)
                     whatIfRow(label: "State Tax Due", current: comparison.current.stateTaxDue, withConversion: comparison.withConversion.stateTaxDue)
-                    whatIfRow(label: "Tier 0 IRMAA Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, flagIfNegative: true)
-
+                    whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, flagIfNegative: true)
+                    whatIfRow(label: "Tier 1 Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, flagIfNegative: true)
+                    whatIfRow(label: "Tier 2 Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, flagIfNegative: true)
+                    
                     if comparison.withConversion.irmaaHeadroom < 0 {
-                        Text("This amount would push you over the Tier 0 IRMAA threshold for this period.")
+                        Text("This amount would push you over the Tier 0→1 IRMAA threshold for this period.")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
-                    
-                    whatIfRow(label: "Tier 1 IRMAA Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, flagIfNegative: true)
-                    
                     if comparison.withConversion.tier1Headroom < 0 {
                         Text("This amount would push you over the Tier 1→2 IRMAA threshold for this period.")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
-                    
-                    whatIfRow(label: "Tier 2 IRMAA Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, flagIfNegative: true)
-                    
                     if comparison.withConversion.tier2Headroom < 0 {
                         Text("This amount would push you over the Tier 2→3 IRMAA threshold for this period.")
                             .font(.caption)
@@ -149,7 +145,7 @@ struct IRMAAAnalysis: View {
         let cleaned = conversionAmountText.filter { $0.isNumber || $0 == "." }
         conversionAmount = Double(cleaned)
     }
-
+    
     private var whatIfHeaderRow: some View {
         HStack {
             Text("").frame(width: 160, alignment: .leading)
@@ -158,7 +154,7 @@ struct IRMAAAnalysis: View {
             Spacer()
         }
     }
-
+    
     private func whatIfRow(label: String, current: Double, withConversion: Double, flagIfNegative: Bool = false) -> some View {
         HStack {
             Text(label)
@@ -178,7 +174,7 @@ struct IRMAARow: Identifiable {
     let label: String
     let values: [String: Double]
     var id: String { label }
-
+    
     subscript(key: String) -> Double {
         values[key] ?? 0.0
     }
@@ -189,12 +185,15 @@ func irmaaRows(results: [String: IRMAAProjector.Result]) -> [IRMAARow] {
     let runRateAGIValues = results.mapValues { $0.runRateAGI }
     let magiValues = results.mapValues { $0.projectedMAGI }
     let headroomValues = results.mapValues { $0.headroom }
-
+    let tier1HeadroomValues = results.mapValues { $0.tier1Headroom }
+    let tier2HeadroomValues = results.mapValues { $0.tier2Headroom }
+    
     return [
         IRMAARow(label: "Run-Rate YTD AGI", values: runRateAGIValues),
         IRMAARow(label: "Projected MAGI", values: magiValues),
-        IRMAARow(label: "Tier 0 IRMAA Headroom", values: headroomValues),
-        IRMAARow(label: "Tier 1 IRMAA Headroom", values: results.mapValues { $0.tier1Headroom }),
-        IRMAARow(label: "Tier 2 IRMAA Headroom", values: results.mapValues { $0.tier2Headroom })
+        IRMAARow(label: "Tier 0 Headroom", values: headroomValues),
+        IRMAARow(label: "Tier 1 Headroom", values: tier1HeadroomValues),
+        IRMAARow(label: "Tier 2 Headroom", values: tier2HeadroomValues)
     ]
 }
+

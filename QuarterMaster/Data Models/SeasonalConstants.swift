@@ -26,6 +26,10 @@ struct SeasonalConstants {
     static let irmaaTier1CeilingMFJ = 284000.0      // Estimated 2028-effective Tier 1→2 MAGI threshold (MFJ)
     static let irmaaTier2CeilingMFJ = 355000.0      // Estimated 2028-effective Tier 2→3 MAGI threshold (MFJ)
     
+        // Net Investment Income Tax (Form 8960). Unlike the values above, these are fixed by statute and have never been inflation-indexed since NIIT took effect in 2013 - no annual review needed here.
+    static let niitRate = 0.038                     // 3.8% NIIT rate
+    static let niitThresholdMFJ = 250000.0          // NIIT MAGI threshold (MFJ)
+    
     struct TaxBracket {
         let rate: Double
         let minIncome: Double
@@ -80,7 +84,7 @@ struct SeasonalConstants {
             let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
             return bracket.rate
         }
-            
+        
         static func getMinTax(for income: Double) -> Double {
             let bracket = mfjBrackets.first { $0.contains(income) } ?? mfjBrackets.last!
             return bracket.minTax
