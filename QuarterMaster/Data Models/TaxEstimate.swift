@@ -17,6 +17,10 @@ final class TaxEstimate {
     var taxableCapitalGains = 0.0
     var netInvestmentIncomeTax = 0.0
     var marginalTaxRate = 0.0
+    var ordinaryTaxableIncome = 0.0
+    var ordinaryIncomeTax = 0.0
+    var preferentialRateIncome = 0.0
+    var preferentialRateTax = 0.0
     var additionalDeductions = 0.0
     var totalDeductions = 0.0
     var taxableIncome = 0.0
@@ -54,6 +58,10 @@ extension TaxEstimate: CustomStringConvertible {
           taxableCapitalGains:      \(taxableCapitalGains)
           netInvestmentIncomeTax:   \(netInvestmentIncomeTax)
           marginalTaxRate:          \(marginalTaxRate)
+          ordinaryTaxableIncome:    \(ordinaryTaxableIncome)
+          ordinaryIncomeTax:        \(ordinaryIncomeTax)
+          preferentialRateIncome:   \(preferentialRateIncome)
+          preferentialRateTax:      \(preferentialRateTax)
           additionalDeductions:     \(additionalDeductions)
           totalDeductions:          \(totalDeductions)
           taxableIncome:            \(taxableIncome)
@@ -65,3 +73,4 @@ extension TaxEstimate: CustomStringConvertible {
         """
     }
 }
+

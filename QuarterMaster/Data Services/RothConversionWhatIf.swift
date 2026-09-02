@@ -7,13 +7,15 @@
 
 import Foundation
 
+import Foundation
+
     // Computes a side-by-side comparison of "no conversion" vs. "convert $X" for a given tax period, without touching any persisted TaxPeriodInput/TaxEstimate records - if the user decides to actually do a conversion, that shows up for real once it's reflected in an imported input file, same as any other income item; this is a scratchpad calculation only.
 
-    // The federal "with conversion" figure is NOT computed by mutating iraDistributions and re-running FederalTaxCalculator.calculateFederalEstimate top-to-bottom: that function derives AGI by summing raw per-category fields and then multiplying the whole aggregate by TaxPeriod.factor, which assumes whatever's in each category recurs at the same pace for the rest of the year. A Roth conversion is a one-time amount, not a recurring run-rate item, so adding it to iraDistributions before that multiplication would inflate its effect by the annualization factor (e.g. ~4x too much for a Q1 estimate). Instead, the conversion amount is added directly to the already-correct, already-annualized real AGI, and the downstream deduction/tax-table/NIIT math is reproduced using FederalTaxCalculator's own shared helper functions (additionalDeductionsCalc, annualTaxCalc, netInvestmentIncomeTaxCalc) - so the bracket/deduction/NIIT logic itself is never duplicated, only the AGI-derivation step is bypassed.
+    // Both sides of the comparison ("current" and "withConversion") are built on IRMAAProjector's budget-aware  AGI - YTD actuals blended with whatever's budgeted for the remaining months - rather than FederalTaxCalculator's straight-line run-rate factor, which has no way to see one-time/uneven income or tax events planned for later in the year. Building both sides the same way keeps the Delta column reflecting only the conversion's effect, not a mismatch between two different ways of projecting the rest of the year. One consequence: for a quarterly period with a material run-rate-vs-budget gap, this what-if's "Current" Fed AGI/Total Tax will differ from the "official" quarterly Federal Tax Estimate shown elsewhere in the app, which still uses the plain run-rate factor.
 
-    // IRMAAProjector, by contrast, already treats taxPeriodInput.iraDistributions as a direct actual-to-date figure with no further annualization, so for that calculation the conversion amount is added straight to a detached copy's field.
+    // The conversion amount itself is never re-annualized: it's added directly to iraDistributions on a detached input copy before the budget-aware projection runs, since IRMAAProjector already treats iraDistributions as a direct actual-to-date figure with no further annualization - so a one-time conversion lands as a one-time amount, not inflated by however many months remain in the period.
 
-    // StateTaxCalculator takes federal AGI as an input rather than re-deriving it from raw fields, so it has none of the run-rate issue and is called unmodified.
+    // StateTaxCalculator takes federal AGI as an input rather than re-deriving it from raw fields, so feeding it the budget-aware scenarioFedEstimate automatically makes the state side budget-aware too - no changes needed there.
 
 struct RothConversionWhatIf {
     
@@ -49,7 +51,7 @@ struct RothConversionWhatIf {
         var stateTotalTaxDelta: Double { withConversion.stateTotalTax - current.stateTotalTax }
     }
     
-        // fedEstimate/stateEstimate/currentIRMAAResult should be the real, already-computed values for taxPeriodInput - reused directly for the "current" side rather than recomputed.
+        // fedEstimate should be the real, already-computed federal estimate for taxPeriodInput - used only as a source for taxableSocialSecurity/taxableCapitalGains (categories IRMAAProjector treats as already-derived inputs rather than raw fields it re-projects itself); never mutated. stateEstimate is kept as a parameter so callers don't need to change, but its fields are no longer read directly - the budget-aware state figures are recomputed from scratch below instead. currentIRMAAResult is reused as-is for the "current" side rather than recomputed, since it's already the budget-aware projection for the real, unmodified taxPeriodInput/fedEstimate.
     static func compare(
         taxPeriodInput: TaxPeriodInput,
         fedEstimate: TaxEstimate,
@@ -59,68 +61,84 @@ struct RothConversionWhatIf {
         conversionAmount: Double
     ) -> Comparison {
         
-        let current = Scenario(
-            federalTaxDue: fedEstimate.taxEstimate,
-            stateTaxDue: stateEstimate.taxEstimate,
-            irmaaHeadroom: currentIRMAAResult.headroom,
-            tier1Headroom: currentIRMAAResult.tier1Headroom,
-            tier2Headroom: currentIRMAAResult.tier2Headroom,
-            specialDeduction: fedEstimate.additionalDeductions,
-            fedAGI: fedEstimate.adjustedGrossIncome,
-            fedTotalTax: fedEstimate.totalTax,
-            fedMarginalRate: fedEstimate.marginalTaxRate,
-            stateAGI: stateEstimate.adjustedGrossIncome,
-            stateTotalTax: stateEstimate.totalTax
+        let current = buildScenario(
+            taxPeriodInput: taxPeriodInput,
+            fedEstimate: fedEstimate,
+            monthlyBudget: monthlyBudget,
+            conversionAmount: 0,
+            precomputedIRMAAResult: currentIRMAAResult
         )
         
         guard conversionAmount > 0 else {
             return Comparison(conversionAmount: conversionAmount, current: current, withConversion: current)
         }
         
-            // Detached copy - never inserted into any ModelContext, so nothing built against it can persist or attach itself to the real taxEstimates relationship.
-        let whatIfInput = taxPeriodInput.detachedCopy()
-        
-            // --- Federal ---
-        let whatIfFedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: whatIfInput)
-        whatIfFedEstimate.taxableSocialSecurity = fedEstimate.taxableSocialSecurity
-        whatIfFedEstimate.taxableCapitalGains = fedEstimate.taxableCapitalGains
-        whatIfFedEstimate.adjustedGrossIncome = fedEstimate.adjustedGrossIncome + conversionAmount
-        
-        FederalTaxCalculator.additionalDeductionsCalc(fedEstimate: whatIfFedEstimate)
-        whatIfFedEstimate.totalDeductions = Double(SeasonalConstants.standardDeduction) + whatIfFedEstimate.additionalDeductions + min(whatIfInput.cashDonations, 2000.0)
-        whatIfFedEstimate.taxableIncome = whatIfFedEstimate.adjustedGrossIncome - whatIfFedEstimate.totalDeductions
-        FederalTaxCalculator.netInvestmentIncomeTaxCalc(taxPeriodInput: whatIfInput, fedEstimate: whatIfFedEstimate)
-        whatIfFedEstimate.totalTax = FederalTaxCalculator.annualTaxCalc(taxPeriodInput: whatIfInput, fedEstimate: whatIfFedEstimate) - SeasonalConstants.foreignTaxPaid + whatIfFedEstimate.netInvestmentIncomeTax
-        whatIfFedEstimate.taxesPaid = whatIfInput.fedCYWitholding + whatIfInput.fedCYEstimates
-        
-        let factor = TaxPeriod.factor(for: whatIfInput.taxPeriodId)
-        whatIfFedEstimate.taxEstimate = (whatIfFedEstimate.totalTax * (1 / factor)) - whatIfFedEstimate.taxesPaid
-        
-            // State: no run-rate issue here, safe to call unmodified.
-        StateTaxCalculator.calculateStateEstimate(taxPeriodInput: whatIfInput, fedEstimate: whatIfFedEstimate)
-        guard let whatIfStateEstimate = whatIfInput.taxEstimates.first(where: { $0.taxEntity == TaxEntity.state.rawValue }) else {
-            return Comparison(conversionAmount: conversionAmount, current: current, withConversion: current)
-        }
-        
-            // IRMAA: iraDistributions is treated as a direct actual-to-date figure already, so the full conversion amount is added straight to the detached copy's field.
-        whatIfInput.iraDistributions += conversionAmount
-        let whatIfIRMAAResult = IRMAAProjector.projectMAGI(taxPeriodInput: whatIfInput, fedEstimate: whatIfFedEstimate, monthlyBudget: monthlyBudget)
-        
-        let withConversion = Scenario(
-            federalTaxDue: whatIfFedEstimate.taxEstimate,
-            stateTaxDue: whatIfStateEstimate.taxEstimate,
-            irmaaHeadroom: whatIfIRMAAResult.headroom,
-            tier1Headroom: whatIfIRMAAResult.tier1Headroom,
-            tier2Headroom: whatIfIRMAAResult.tier2Headroom,
-            specialDeduction: whatIfFedEstimate.additionalDeductions,
-            fedAGI: whatIfFedEstimate.adjustedGrossIncome,
-            fedTotalTax: whatIfFedEstimate.totalTax,
-            fedMarginalRate: whatIfFedEstimate.marginalTaxRate,
-            stateAGI: whatIfStateEstimate.adjustedGrossIncome,
-            stateTotalTax: whatIfStateEstimate.totalTax
+        let withConversion = buildScenario(
+            taxPeriodInput: taxPeriodInput,
+            fedEstimate: fedEstimate,
+            monthlyBudget: monthlyBudget,
+            conversionAmount: conversionAmount,
+            precomputedIRMAAResult: nil
         )
         
         return Comparison(conversionAmount: conversionAmount, current: current, withConversion: withConversion)
+    }
+    
+        // Builds one side of the comparison (current when conversionAmount is 0, with-conversion otherwise) on a detached, never-persisted copy of the tax period.
+    private static func buildScenario(
+        taxPeriodInput: TaxPeriodInput,
+        fedEstimate: TaxEstimate,
+        monthlyBudget: [MonthlyBudgetEntry],
+        conversionAmount: Double,
+        precomputedIRMAAResult: IRMAAProjector.Result?
+    ) -> Scenario {
+        
+            // Detached copy - never inserted into any ModelContext, so nothing built against it can persist or attach itself to the real taxEstimates relationship.
+        let scenarioInput = taxPeriodInput.detachedCopy()
+        scenarioInput.iraDistributions += conversionAmount
+        
+        let scenarioFedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: scenarioInput)
+        scenarioFedEstimate.taxableSocialSecurity = fedEstimate.taxableSocialSecurity
+        scenarioFedEstimate.taxableCapitalGains = fedEstimate.taxableCapitalGains
+        
+            // precomputedIRMAAResult is passed in for the no-conversion side, since it's value-identical to recomputing against scenarioInput/scenarioFedEstimate here (conversionAmount 0 leaves iraDistributions unchanged, and taxableSocialSecurity/taxableCapitalGains were just copied from the same fedEstimate) - so it's reused rather than redone.
+        let irmaaResult = precomputedIRMAAResult ?? IRMAAProjector.projectMAGI(
+            taxPeriodInput: scenarioInput,
+            fedEstimate: scenarioFedEstimate,
+            monthlyBudget: monthlyBudget
+        )
+        
+            // Budget-aware AGI (YTD actuals + remaining budgeted months) in place of FederalTaxCalculator's run-rate factor - see the file-level comment for why.
+        scenarioFedEstimate.adjustedGrossIncome = irmaaResult.projectedAGI
+        
+        FederalTaxCalculator.additionalDeductionsCalc(fedEstimate: scenarioFedEstimate)
+        scenarioFedEstimate.totalDeductions = Double(SeasonalConstants.standardDeduction) + scenarioFedEstimate.additionalDeductions + min(scenarioInput.cashDonations, 2000.0)
+        scenarioFedEstimate.taxableIncome = scenarioFedEstimate.adjustedGrossIncome - scenarioFedEstimate.totalDeductions
+        FederalTaxCalculator.netInvestmentIncomeTaxCalc(taxPeriodInput: scenarioInput, fedEstimate: scenarioFedEstimate)
+        scenarioFedEstimate.totalTax = FederalTaxCalculator.annualTaxCalc(taxPeriodInput: scenarioInput, fedEstimate: scenarioFedEstimate) - SeasonalConstants.foreignTaxPaid + scenarioFedEstimate.netInvestmentIncomeTax
+        scenarioFedEstimate.taxesPaid = scenarioInput.fedCYWitholding + scenarioInput.fedCYEstimates
+        
+        let factor = TaxPeriod.factor(for: scenarioInput.taxPeriodId)
+        scenarioFedEstimate.taxEstimate = (scenarioFedEstimate.totalTax * (1 / factor)) - scenarioFedEstimate.taxesPaid
+        
+            // State: takes federal AGI as an input rather than re-deriving it, so it's automatically budget-aware once fed scenarioFedEstimate above - called unmodified.
+        StateTaxCalculator.calculateStateEstimate(taxPeriodInput: scenarioInput, fedEstimate: scenarioFedEstimate)
+            // Not expected to be nil in practice (calculateStateEstimate always attaches one) - falls back to 0 rather than propagating an Optional through Scenario if it ever is.
+        let scenarioStateEstimate = scenarioInput.taxEstimates.first(where: { $0.taxEntity == TaxEntity.state.rawValue })
+        
+        return Scenario(
+            federalTaxDue: scenarioFedEstimate.taxEstimate,
+            stateTaxDue: scenarioStateEstimate?.taxEstimate ?? 0,
+            irmaaHeadroom: irmaaResult.headroom,
+            tier1Headroom: irmaaResult.tier1Headroom,
+            tier2Headroom: irmaaResult.tier2Headroom,
+            specialDeduction: scenarioFedEstimate.additionalDeductions,
+            fedAGI: scenarioFedEstimate.adjustedGrossIncome,
+            fedTotalTax: scenarioFedEstimate.totalTax,
+            fedMarginalRate: scenarioFedEstimate.marginalTaxRate,
+            stateAGI: scenarioStateEstimate?.adjustedGrossIncome ?? 0,
+            stateTotalTax: scenarioStateEstimate?.totalTax ?? 0
+        )
     }
 }
 

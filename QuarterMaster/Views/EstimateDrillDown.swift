@@ -35,6 +35,18 @@ struct EstimateDrillDown: View {
         DrilldownRowConfig(displayName: "Tax Balance") { _, estimate in estimate?.taxEstimate ?? 0 }
     ]
     
+        // Recap of how Total Tax breaks down: the ordinary-income/bracket-taxed portion vs. the flat-15%-taxed portion (qualified dividends + LTCG + cap gain distributions), plus NIIT. Federal-only section - state has no marginal-rate/preferential-rate split to show.
+    let federalTaxCalculationConfigs: [DrilldownRowConfig] = [
+        DrilldownRowConfig(displayName: "AGI") { _, estimate in estimate?.adjustedGrossIncome ?? 0 },
+        DrilldownRowConfig(displayName: "Total Taxable Income") { _, estimate in estimate?.taxableIncome ?? 0 },
+        DrilldownRowConfig(displayName: "Total Tax") { _, estimate in estimate?.totalTax ?? 0 },
+        DrilldownRowConfig(displayName: "Total Income Taxed at Marginal Rate") { _, estimate in estimate?.ordinaryTaxableIncome ?? 0 },
+        DrilldownRowConfig(displayName: "Tax from Marginal Rate Calculation") { _, estimate in estimate?.ordinaryIncomeTax ?? 0 },
+        DrilldownRowConfig(displayName: "Total Capital Gains Income") { _, estimate in estimate?.preferentialRateIncome ?? 0 },
+        DrilldownRowConfig(displayName: "Tax from Capital Gains") { _, estimate in estimate?.preferentialRateTax ?? 0 },
+        DrilldownRowConfig(displayName: "Net Investment Income Tax") { _, estimate in estimate?.netInvestmentIncomeTax ?? 0 }
+    ]
+    
     let stateDrilldownConfigs: [DrilldownRowConfig] = [
         DrilldownRowConfig(displayName: "Federal AGI") { _, estimate in estimate?.fedAGI ?? 0 },
         DrilldownRowConfig(displayName: "Additions *") { _, estimate in estimate?.incomeAdditions ?? 0},
@@ -57,6 +69,18 @@ struct EstimateDrillDown: View {
                 EstimateColumns.makeColumns(taxEntity: entity, estimateCycle: estimateCycle)
             }
             .id(estimateCycle)
+            
+            if isFederal {
+                let calcRows = drilldownRows(configs: federalTaxCalculationConfigs, taxEntity: entity, taxPeriodInput: taxPeriodInput)
+                
+                Divider()
+                    .padding(.vertical, 8)
+                
+                Table(calcRows) {
+                    EstimateColumns.makeColumns(taxEntity: entity, estimateCycle: estimateCycle, title: "Federal Tax Calculation")
+                }
+                .id(estimateCycle)
+            }
             
             HStack {
                 Text("* - calculated based on an internal factor")

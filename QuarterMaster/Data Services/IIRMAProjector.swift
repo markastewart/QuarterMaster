@@ -21,6 +21,8 @@ struct IRMAAProjector {
     
     struct Result {
         let runRateAGI: Double
+            // The budget-aware AGI (pre-MAGI, i.e. before adding back non-taxable dividends) - exposed so other callers (RothConversionWhatIf) can build their own tax figures off same YTD-actual + remaining-budget projection this file already computes, instead of FederalTaxCalculator's run-rate factor.
+        let projectedAGI: Double
         let projectedMAGI: Double
         let headroom: Double
         let tier1Headroom: Double
@@ -128,6 +130,7 @@ struct IRMAAProjector {
         
         return Result(
             runRateAGI: fedEstimate.adjustedGrossIncome,
+            projectedAGI: projectedAGI,
             projectedMAGI: projectedMAGI,
             headroom: headroom,
             tier1Headroom: tier1Headroom,

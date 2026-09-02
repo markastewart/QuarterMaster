@@ -67,7 +67,7 @@ struct EstimateColumns {
             case .currency:
                 Text(row[key], format: .currency(code: "USD").precision(.fractionLength(0)))
             case .percent:
-                Text(row[key], format: .percent.precision(.fractionLength(1)))
+                Text(row[key], format: .percent.precision(.fractionLength(0)))
         }
     }
 }

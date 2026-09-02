@@ -115,6 +115,12 @@ struct FederalTaxCalculator {
             // Marginal rate = the bracket rate on the last dollar of ordinary income. Capital gains/qualified dividends are taxed flat at 15% above and don't move this bracket, so they're excluded here.
         fedEstimate.marginalTaxRate = marginalRate(for: ordinaryIncome)
         
+            // Store the ordinary/preferential-rate split so the drilldown can show the two halves of totalTax's pre-NIIT, pre-foreign-tax-credit component separately.
+        fedEstimate.ordinaryTaxableIncome = ordinaryIncome
+        fedEstimate.ordinaryIncomeTax = taxOnOrdinary
+        fedEstimate.preferentialRateIncome = taxableGains
+        fedEstimate.preferentialRateTax = taxOnGains
+        
         return taxOnGains + taxOnOrdinary
     }
     
