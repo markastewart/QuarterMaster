@@ -26,8 +26,10 @@ struct RothConversionWhatIf {
         let tier2Headroom: Double
         let specialDeduction: Double
         let fedAGI: Double
+        let netTaxableIncome: Double
         let fedTotalTax: Double
         let fedMarginalRate: Double
+        let netInvestmentIncomeTax: Double
         let stateAGI: Double
         let stateTotalTax: Double
     }
@@ -45,8 +47,10 @@ struct RothConversionWhatIf {
         var tier2HeadroomDelta: Double { withConversion.tier2Headroom - current.tier2Headroom }
         var specialDeductionDelta: Double { withConversion.specialDeduction - current.specialDeduction }
         var fedAGIDelta: Double { withConversion.fedAGI - current.fedAGI }
+        var netTaxableIncomeDelta: Double { withConversion.netTaxableIncome - current.netTaxableIncome }
         var fedTotalTaxDelta: Double { withConversion.fedTotalTax - current.fedTotalTax }
         var fedMarginalRateDelta: Double { withConversion.fedMarginalRate - current.fedMarginalRate }
+        var netInvestmentIncomeTaxDelta: Double { withConversion.netInvestmentIncomeTax - current.netInvestmentIncomeTax }
         var stateAGIDelta: Double { withConversion.stateAGI - current.stateAGI }
         var stateTotalTaxDelta: Double { withConversion.stateTotalTax - current.stateTotalTax }
     }
@@ -135,11 +139,15 @@ struct RothConversionWhatIf {
             tier2Headroom: irmaaResult.tier2Headroom,
             specialDeduction: scenarioFedEstimate.additionalDeductions,
             fedAGI: scenarioFedEstimate.adjustedGrossIncome,
+            netTaxableIncome: scenarioFedEstimate.taxableIncome,
             fedTotalTax: scenarioFedEstimate.totalTax,
             fedMarginalRate: scenarioFedEstimate.marginalTaxRate,
+            netInvestmentIncomeTax: scenarioFedEstimate.netInvestmentIncomeTax,
             stateAGI: scenarioStateEstimate?.adjustedGrossIncome ?? 0,
             stateTotalTax: scenarioStateEstimate?.totalTax ?? 0
         )
     }
 }
+
+
 

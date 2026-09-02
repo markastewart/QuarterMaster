@@ -67,8 +67,10 @@ struct RothConversionWhatIfView: View {
                 whatIfHeaderRow
                 
                 whatIfRow(label: "Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta)
+                whatIfRow(label: "Net Taxable Income", current: comparison.current.netTaxableIncome, withConversion: comparison.withConversion.netTaxableIncome, delta: comparison.netTaxableIncomeDelta)
                 whatIfRow(label: "Fed Total Tax", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta)
                 whatIfRow(label: "Fed Tax Marginal Rate", current: comparison.current.fedMarginalRate, withConversion: comparison.withConversion.fedMarginalRate, delta: nil, formatStyle: .percent)
+                whatIfRow(label: "Net Investment Tax", current: comparison.current.netInvestmentIncomeTax, withConversion: comparison.withConversion.netInvestmentIncomeTax, delta: comparison.netInvestmentIncomeTaxDelta)
                 whatIfRow(label: "State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta)
                 whatIfRow(label: "State Total Tax", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta)
                 whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction, delta: comparison.specialDeductionDelta)
@@ -141,7 +143,7 @@ struct RothConversionWhatIfView: View {
             case .currency:
                 Text(value, format: .currency(code: "USD").precision(.fractionLength(0)))
             case .percent:
-                Text(value, format: .percent.precision(.fractionLength(1)))
+                Text(value, format: .percent.precision(.fractionLength(0)))
         }
     }
 }
