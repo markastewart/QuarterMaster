@@ -72,6 +72,7 @@ struct RothConversionWhatIfView: View {
                 whatIfRow(label: "State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta)
                 whatIfRow(label: "State Total Tax", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta)
                 whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction, delta: comparison.specialDeductionDelta)
+                whatIfRow(label: "Projected MAGI", current: comparison.current.projectedMAGI, withConversion: comparison.withConversion.projectedMAGI, delta: comparison.projectedMAGIDelta)
                 whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, delta: comparison.irmaaHeadroomDelta, flagIfNegative: true)
                 whatIfRow(label: "Tier 1 Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, delta: comparison.tier1HeadroomDelta, flagIfNegative: true)
                 whatIfRow(label: "Tier 2 Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, delta: comparison.tier2HeadroomDelta, flagIfNegative: true)
@@ -144,3 +145,4 @@ struct RothConversionWhatIfView: View {
         }
     }
 }
+

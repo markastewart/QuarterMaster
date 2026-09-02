@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
     // Computes a side-by-side comparison of "no conversion" vs. "convert $X" for a given tax period, without touching any persisted TaxPeriodInput/TaxEstimate records - if the user decides to actually do a conversion, that shows up for real once it's reflected in an imported input file, same as any other income item; this is a scratchpad calculation only.
 
     // Both sides of the comparison ("current" and "withConversion") are built on IRMAAProjector's budget-aware  AGI - YTD actuals blended with whatever's budgeted for the remaining months - rather than FederalTaxCalculator's straight-line run-rate factor, which has no way to see one-time/uneven income or tax events planned for later in the year. Building both sides the same way keeps the Delta column reflecting only the conversion's effect, not a mismatch between two different ways of projecting the rest of the year. One consequence: for a quarterly period with a material run-rate-vs-budget gap, this what-if's "Current" Fed AGI/Total Tax will differ from the "official" quarterly Federal Tax Estimate shown elsewhere in the app, which still uses the plain run-rate factor.
@@ -22,6 +20,7 @@ struct RothConversionWhatIf {
     struct Scenario {
         let federalTaxDue: Double
         let stateTaxDue: Double
+        let projectedMAGI: Double
         let irmaaHeadroom: Double
         let tier1Headroom: Double
         let tier2Headroom: Double
@@ -40,6 +39,7 @@ struct RothConversionWhatIf {
         
         var federalTaxDueDelta: Double { withConversion.federalTaxDue - current.federalTaxDue }
         var stateTaxDueDelta: Double { withConversion.stateTaxDue - current.stateTaxDue }
+        var projectedMAGIDelta: Double { withConversion.projectedMAGI - current.projectedMAGI }
         var irmaaHeadroomDelta: Double { withConversion.irmaaHeadroom - current.irmaaHeadroom }
         var tier1HeadroomDelta: Double { withConversion.tier1Headroom - current.tier1Headroom }
         var tier2HeadroomDelta: Double { withConversion.tier2Headroom - current.tier2Headroom }
@@ -129,6 +129,7 @@ struct RothConversionWhatIf {
         return Scenario(
             federalTaxDue: scenarioFedEstimate.taxEstimate,
             stateTaxDue: scenarioStateEstimate?.taxEstimate ?? 0,
+            projectedMAGI: irmaaResult.projectedMAGI,
             irmaaHeadroom: irmaaResult.headroom,
             tier1Headroom: irmaaResult.tier1Headroom,
             tier2Headroom: irmaaResult.tier2Headroom,
