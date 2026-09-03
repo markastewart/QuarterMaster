@@ -15,8 +15,7 @@ struct QuarterMasterDashboard: View {
     @State private var isImporting = false
     @State private var selectedQuarter: TaxPeriod = .first
     @State private var selectedCycle: EstimationCycle = .quarterly
-    @State private var showIRMAAAnalysis = false
-    @State private var showRothConversionWhatIf = false
+    @State private var showYearEndProjection = false
     @Query(sort: \TaxPeriodInput.taxPeriodId) private var taxPeriodInput: [TaxPeriodInput]
     
         // Filter depending on selected estimate cycle
@@ -45,11 +44,8 @@ struct QuarterMasterDashboard: View {
                     .padding()
                 }
                 .navigationTitle("")
-                .navigationDestination(isPresented: $showIRMAAAnalysis) {
-                    IRMAAAnalysis(taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
-                }
-                .navigationDestination(isPresented: $showRothConversionWhatIf) {
-                    RothConversionWhatIfView(taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
+                .navigationDestination(isPresented: $showYearEndProjection) {
+                    YearEndProjectionView(taxPeriodInput: filteredInput, estimateCycle: selectedCycle)
                 }
                 .onChange(of: taxPeriodInput) { _, newValue in
                     vm.taxPeriodInput = newValue
@@ -125,18 +121,9 @@ struct QuarterMasterDashboard: View {
             Divider()
             
             Button {
-                showIRMAAAnalysis = true
+                showYearEndProjection = true
             } label: {
-                Label("IRMAA Headroom Analysis", systemImage: "chart.line.uptrend.xyaxis")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .disabled(filteredInput.isEmpty)
-            
-            Button {
-                showRothConversionWhatIf = true
-            } label: {
-                Label("Roth Conversion What-If", systemImage: "dollarsign.arrow.circlepath")
+                Label("YE Projection & Roth Conversion", systemImage: "chart.line.uptrend.xyaxis")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)

@@ -1,15 +1,16 @@
 //
-//  RothConversionWhatIfView.swift
+//  YearEndProjection.swift
 //  QuarterMaster
 //
-//  Created by Mark A Stewart on 9/2/26.
+//  Created by Mark A Stewart on 9/3/26.
 //
 
 import SwiftUI
 import SwiftData
 
-    // Presentation only - moved out of IRMAAAnalysis into its own screen, reached from a dedicated Dashboard button rather than as a section underneath the IRMAA table. Still reuses IRMAAAnalysisVM (rather than a dedicated VM) since whatIfComparison already lives there and needs the same per-period IRMAAProjector.Result set (for the "current" side of the comparison) and monthlyBudget that VM already computes - created fresh each time this view appears, same lifecycle IRMAAAnalysis uses.
-struct RothConversionWhatIfView: View {
+    //"Best Year-End Projection" flow: the budget-aware projection (YTD actuals + remaining budgeted months) up top, IRMAA tier headroom immediately below it (same table - headroom rows sit below the AGI/MAGI rows), and an optional Roth conversion entry at the bottom that turns the projection into a side-by-side Current vs. With-Conversion comparison with a Delta column. Uses IRMAAAnalysisVM since whatIfComparison and the per-period IRMAAProjector.Result set monthlyBudget it needs already live there - created fresh each time this view appears, same lifecycle the two screens it replaces used.
+
+struct YearEndProjectionView: View {
     @Environment(\.modelContext) private var modelContext
     let taxPeriodInput: [TaxPeriodInput]
     let estimateCycle: EstimationCycle
@@ -20,17 +21,23 @@ struct RothConversionWhatIfView: View {
     @State private var conversionAmount: Double?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let vm, !vm.results.isEmpty, let latestInput = taxPeriodInput.last {
-                whatIfSection(latestInput: latestInput, vm: vm)
-            } else {
-                Text("No data available yet. Import a quarterly estimate and an annual budget first.")
-                    .foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                if let vm, !vm.results.isEmpty {
+                    projectionSection(vm: vm)
+                    
+                    if let latestInput = taxPeriodInput.last {
+                        Divider()
+                        rothConversionSection(latestInput: latestInput, vm: vm)
+                    }
+                } else {
+                    Text("No data available yet. Import a quarterly estimate and an annual budget first.")
+                        .foregroundStyle(.secondary)
+                }
             }
-            Spacer()
+            .padding()
         }
-        .padding()
-        .navigationTitle("Roth Conversion What-If")
+        .navigationTitle("YE Projection & Roth Conversion")
         .onAppear {
             if vm == nil {
                 vm = IRMAAAnalysisVM(modelContext: modelContext, taxPeriodInput: taxPeriodInput)
@@ -38,9 +45,64 @@ struct RothConversionWhatIfView: View {
         }
     }
     
+        // MARK: - Best Year-End Projection + IRMAA Headroom
+        // One combined table: Run-Rate YTD AGI and Projected MAGI up top, Tier 0/1/2 Headroom rows immediately below - same budget-aware projection that used to live on the standalone IRMAA screen.
+    @ViewBuilder
+    private func projectionSection(vm: IRMAAAnalysisVM) -> some View {
+        let rows = irmaaRows(results: vm.results)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            Text("IIRMA Analysis").font(.headline)
+            
+            Table(rows) {
+                EstimateColumns.makeColumns(taxEntity: .federal, estimateCycle: estimateCycle, title: "")
+            }
+            .id(estimateCycle)
+            .frame(height: CGFloat(rows.count) * 28 + 30)
+            
+            Text("2026 Tier 0 ceiling: \(SeasonalConstants.irmaaTier0CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0))) · Tier 1 ceiling: \(SeasonalConstants.irmaaTier1CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0))) · Tier 2 ceiling: \(SeasonalConstants.irmaaTier2CeilingMFJ, format: .currency(code: "USD").precision(.fractionLength(0)))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Text("Each period blends that period's year-to-date actuals with the remaining months' budgeted income - not a substitute for the true two-year IRMAA lookback.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            
+            estimateCycle == .quarterly ? topDriversSection(vm: vm) : nil
+        }
+    }
+    
+        // Shows what's driving most recent period's Projected MAGI above its Run-Rate AGI - only when that gap is material (>5%, per IRMAAProjector.Result.isMaterialGap). The table above already shows every period; this section is scoped to the latest one, since showing a top-5 breakdown per period at once would be a lot to take in at once.
+    @ViewBuilder
+    private func topDriversSection(vm: IRMAAAnalysisVM) -> some View {
+        if let latestPeriodId = taxPeriodInput.last?.taxPeriodId,
+           let latestResult = vm.results[latestPeriodId],
+           latestResult.isMaterialGap {
+            
+            Divider()
+                .padding(.vertical, 4)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth (above Run-Rate)")
+                    .font(.headline)
+                
+                ForEach(latestResult.topFiveDeltas) { item in
+                    HStack {
+                        Text(item.label)
+                            .frame(width: 200, alignment: .leading)
+                        Text(item.delta, format: .currency(code: "USD").precision(.fractionLength(0)))
+                            .frame(width: 110, alignment: .trailing)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+    
+        // MARK: - Roth Conversion Entry
         // Compare "no conversion" vs. "convert $X" for the latest period. Purely a scratchpad - nothing here reads or writes real TaxPeriodInput/TaxEstimate data; if a conversion is actually made, it'll show up for real once reflected in a future import.
     @ViewBuilder
-    private func whatIfSection(latestInput: TaxPeriodInput, vm: IRMAAAnalysisVM) -> some View {
+    private func rothConversionSection(latestInput: TaxPeriodInput, vm: IRMAAAnalysisVM) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Roth Conversion What-If (\(latestInput.taxPeriodId))")
                 .font(.headline)
@@ -146,5 +208,34 @@ struct RothConversionWhatIfView: View {
                 Text(value, format: .percent.precision(.fractionLength(0)))
         }
     }
+}
+
+    // Support types/functions for the projection table - same shape as TaxSummaryRow/summaryRows in EstimateSummary.swift, so this table renders through the exact same EstimateColumns builder. Moved here from the retired IIRMAAnalysis.swift.
+struct IRMAARow: Identifiable {
+    let label: String
+    let values: [String: Double]
+    let formatStyle: RowFormatStyle = .currency
+    var id: String { label }
+    
+    subscript(key: String) -> Double {
+        values[key] ?? 0.0
+    }
+}
+extension IRMAARow: TaxRowProvider {}
+
+func irmaaRows(results: [String: IRMAAProjector.Result]) -> [IRMAARow] {
+    let runRateAGIValues = results.mapValues { $0.runRateAGI }
+    let magiValues = results.mapValues { $0.projectedMAGI }
+    let headroomValues = results.mapValues { $0.headroom }
+    let tier1HeadroomValues = results.mapValues { $0.tier1Headroom }
+    let tier2HeadroomValues = results.mapValues { $0.tier2Headroom }
+    
+    return [
+        IRMAARow(label: "Run-Rate YTD AGI", values: runRateAGIValues),
+        IRMAARow(label: "Projected MAGI", values: magiValues),
+        IRMAARow(label: "Tier 0 Headroom", values: headroomValues),
+        IRMAARow(label: "Tier 1 Headroom", values: tier1HeadroomValues),
+        IRMAARow(label: "Tier 2 Headroom", values: tier2HeadroomValues)
+    ]
 }
 
