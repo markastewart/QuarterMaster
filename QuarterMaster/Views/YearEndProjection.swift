@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-    //"Best Year-End Projection" flow: the budget-aware projection (YTD actuals + remaining budgeted months) up top, IRMAA tier headroom immediately below it (same table - headroom rows sit below the AGI/MAGI rows), and an optional Roth conversion entry at the bottom that turns the projection into a side-by-side Current vs. With-Conversion comparison with a Delta column. Uses IRMAAAnalysisVM since whatIfComparison and the per-period IRMAAProjector.Result set monthlyBudget it needs already live there - created fresh each time this view appears, same lifecycle the two screens it replaces used.
+    // Year-End Projection flow: the budget-aware projection (YTD actuals + remaining budgeted months) up top, IRMAA tier headroom immediately below it (same table - headroom rows sit below the AGI/MAGI rows), and an optional Roth conversion entry at the bottom that turns the projection into a side-by-side Current vs. With-Conversion comparison with a Delta column. Uses IRMAAAnalysisVM since whatIfComparison and the per-period IRMAAProjector.Result set monthlyBudget it needs already live there - created fresh each time this view appears, same lifecycle the two screens it replaces used.
 
 struct YearEndProjectionView: View {
     @Environment(\.modelContext) private var modelContext
@@ -72,7 +72,7 @@ struct YearEndProjectionView: View {
         }
     }
     
-        // Shows what's driving most recent period's Projected MAGI above its Run-Rate AGI - only when that gap is material (>5%, per IRMAAProjector.Result.isMaterialGap). The table above already shows every period; this section is scoped to the latest one, since showing a top-5 breakdown per period at once would be a lot to take in at once.
+        // Shows what's driving most recent period's Projected MAGI above its Run-Rate AGI - only when gap is material (>5%, per IRMAAProjector.Result.isMaterialGap). The summary table shows every period; this section scoped to the latest one.
     @ViewBuilder
     private func topDriversSection(vm: IRMAAAnalysisVM) -> some View {
         if let latestPeriodId = taxPeriodInput.last?.taxPeriodId,
@@ -83,7 +83,7 @@ struct YearEndProjectionView: View {
                 .padding(.vertical, 4)
             
             VStack(alignment: .leading, spacing: 6) {
-                Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth (above Run-Rate)")
+                Text("Primary Sources of \(latestPeriodId) Projected MAGI Growth (above the Run-Rate YTD AGI value)")
                     .font(.headline)
                 
                 ForEach(latestResult.topFiveDeltas) { item in
@@ -101,6 +101,8 @@ struct YearEndProjectionView: View {
     
         // MARK: - Roth Conversion Entry
         // Compare "no conversion" vs. "convert $X" for the latest period. Purely a scratchpad - nothing here reads or writes real TaxPeriodInput/TaxEstimate data; if a conversion is actually made, it'll show up for real once reflected in a future import.
+
+        // Opens showing just Current column - pulled from a conversionAmount: 0 comparison, whose withConversion/delta simply mirror current in that case (RothConversionWhatIf.compare's early-return for a non-positive amount) - so there's nothing to compute twice. Once positive amount entered, same comparison call (with real amount) drives With Conversion and Delta columns, which whatIfHeaderRow/whatIfRow reveal via showComparison.
     @ViewBuilder
     private func rothConversionSection(latestInput: TaxPeriodInput, vm: IRMAAAnalysisVM) -> some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -123,38 +125,40 @@ struct YearEndProjectionView: View {
                     }
             }
             
-            if let amount = conversionAmount, amount > 0,
-               let comparison = vm.whatIfComparison(for: latestInput, conversionAmount: amount) {
+            if let comparison = vm.whatIfComparison(for: latestInput, conversionAmount: conversionAmount ?? 0) {
+                let showComparison = (conversionAmount ?? 0) > 0
                 
-                whatIfHeaderRow
+                whatIfHeaderRow(showComparison: showComparison)
                 
-                whatIfRow(label: "Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta)
-                whatIfRow(label: "Net Taxable Income", current: comparison.current.netTaxableIncome, withConversion: comparison.withConversion.netTaxableIncome, delta: comparison.netTaxableIncomeDelta)
-                whatIfRow(label: "Fed Total Tax", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta)
-                whatIfRow(label: "Fed Tax Marginal Rate", current: comparison.current.fedMarginalRate, withConversion: comparison.withConversion.fedMarginalRate, delta: nil, formatStyle: .percent)
-                whatIfRow(label: "Net Investment Tax", current: comparison.current.netInvestmentIncomeTax, withConversion: comparison.withConversion.netInvestmentIncomeTax, delta: comparison.netInvestmentIncomeTaxDelta)
-                whatIfRow(label: "State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta)
-                whatIfRow(label: "State Total Tax", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta)
-                whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction, delta: comparison.specialDeductionDelta)
-                whatIfRow(label: "Projected MAGI", current: comparison.current.projectedMAGI, withConversion: comparison.withConversion.projectedMAGI, delta: comparison.projectedMAGIDelta)
-                whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, delta: comparison.irmaaHeadroomDelta, flagIfNegative: true)
-                whatIfRow(label: "Tier 1 Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, delta: comparison.tier1HeadroomDelta, flagIfNegative: true)
-                whatIfRow(label: "Tier 2 Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, delta: comparison.tier2HeadroomDelta, flagIfNegative: true)
+                whatIfRow(label: "Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta, showComparison: showComparison)
+                whatIfRow(label: "Net Taxable Income", current: comparison.current.netTaxableIncome, withConversion: comparison.withConversion.netTaxableIncome, delta: comparison.netTaxableIncomeDelta, showComparison: showComparison)
+                whatIfRow(label: "Fed Total Tax", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "Fed Tax Marginal Rate", current: comparison.current.fedMarginalRate, withConversion: comparison.withConversion.fedMarginalRate, delta: nil, formatStyle: .percent, showComparison: showComparison)
+                whatIfRow(label: "Net Investment Tax", current: comparison.current.netInvestmentIncomeTax, withConversion: comparison.withConversion.netInvestmentIncomeTax, delta: comparison.netInvestmentIncomeTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta, showComparison: showComparison)
+                whatIfRow(label: "State Total Tax", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction, delta: comparison.specialDeductionDelta, showComparison: showComparison)
+                whatIfRow(label: "Projected MAGI", current: comparison.current.projectedMAGI, withConversion: comparison.withConversion.projectedMAGI, delta: comparison.projectedMAGIDelta, showComparison: showComparison)
+                whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, delta: comparison.irmaaHeadroomDelta, flagIfNegative: true, showComparison: showComparison)
+                whatIfRow(label: "Tier 1 Headroom", current: comparison.current.tier1Headroom, withConversion: comparison.withConversion.tier1Headroom, delta: comparison.tier1HeadroomDelta, flagIfNegative: true, showComparison: showComparison)
+                whatIfRow(label: "Tier 2 Headroom", current: comparison.current.tier2Headroom, withConversion: comparison.withConversion.tier2Headroom, delta: comparison.tier2HeadroomDelta, flagIfNegative: true, showComparison: showComparison)
                 
-                if comparison.withConversion.irmaaHeadroom < 0 {
-                    Text("This amount would push you over the Tier 0→1 IRMAA threshold for this period.")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-                if comparison.withConversion.tier1Headroom < 0 {
-                    Text("This amount would push you over the Tier 1→2 IRMAA threshold for this period.")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-                if comparison.withConversion.tier2Headroom < 0 {
-                    Text("This amount would push you over the Tier 2→3 IRMAA threshold for this period.")
-                        .font(.caption)
-                        .foregroundColor(.red)
+                if showComparison {
+                    if comparison.withConversion.irmaaHeadroom < 0 {
+                        Text("This amount would push you over the Tier 0→1 IRMAA threshold for this period.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    if comparison.withConversion.tier1Headroom < 0 {
+                        Text("This amount would push you over the Tier 1→2 IRMAA threshold for this period.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    if comparison.withConversion.tier2Headroom < 0 {
+                        Text("This amount would push you over the Tier 2→3 IRMAA threshold for this period.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
                 }
             }
         }
@@ -165,35 +169,41 @@ struct YearEndProjectionView: View {
         conversionAmount = Double(cleaned)
     }
     
-    private var whatIfHeaderRow: some View {
+        // Current is always shown; With Conversion and Delta only render once showComparison is true (i.e. a positive conversion amount has been entered).
+    private func whatIfHeaderRow(showComparison: Bool) -> some View {
         HStack {
             Text("").frame(width: 160, alignment: .leading)
             Text("Current").bold().frame(width: 130, alignment: .trailing)
-            Text("With Conversion").bold().frame(width: 130, alignment: .trailing)
-            Text("Delta").bold().frame(width: 130, alignment: .trailing)
+            if showComparison {
+                Text("With Conversion").bold().frame(width: 130, alignment: .trailing)
+                Text("Delta").bold().frame(width: 130, alignment: .trailing)
+            }
             Spacer()
         }
     }
     
-        // delta is dollar-denominated (withConversion - current) and shown in its own column; pass nil to leave that column blank, which we do for the Marginal Rate row since a rate difference isn't a dollar delta.
-    private func whatIfRow(label: String, current: Double, withConversion: Double, delta: Double?, formatStyle: RowFormatStyle = .currency, flagIfNegative: Bool = false) -> some View {
+        // delta is dollar-denominated (withConversion - current) and shown in its own column; pass nil to leave that column blank, which we do for the Marginal Rate row since a rate difference isn't a dollar delta. With Conversion/Delta only render when showComparison is true - flagIfNegative colors both Current and (when shown) With Conversion red, since Current alone can already be past a headroom threshold before any conversion is considered.
+    private func whatIfRow(label: String, current: Double, withConversion: Double, delta: Double?, formatStyle: RowFormatStyle = .currency, flagIfNegative: Bool = false, showComparison: Bool) -> some View {
         HStack {
             Text(label)
                 .frame(width: 160, alignment: .leading)
             whatIfValueText(current, formatStyle: formatStyle)
                 .frame(width: 130, alignment: .trailing)
-            whatIfValueText(withConversion, formatStyle: formatStyle)
-                .frame(width: 130, alignment: .trailing)
-                .foregroundColor(flagIfNegative && withConversion < 0 ? .red : .primary)
-            Group {
-                if let delta {
-                    whatIfValueText(delta, formatStyle: .currency)
-                } else {
-                    Text("—")
+                .foregroundColor(flagIfNegative && current < 0 ? .red : .primary)
+            if showComparison {
+                whatIfValueText(withConversion, formatStyle: formatStyle)
+                    .frame(width: 130, alignment: .trailing)
+                    .foregroundColor(flagIfNegative && withConversion < 0 ? .red : .primary)
+                Group {
+                    if let delta {
+                        whatIfValueText(delta, formatStyle: .currency)
+                    } else {
+                        Text("—")
+                    }
                 }
+                .frame(width: 130, alignment: .trailing)
+                .foregroundStyle(.secondary)
             }
-            .frame(width: 130, alignment: .trailing)
-            .foregroundStyle(.secondary)
             Spacer()
         }
     }
@@ -238,4 +248,3 @@ func irmaaRows(results: [String: IRMAAProjector.Result]) -> [IRMAARow] {
         IRMAARow(label: "Tier 2 Headroom", values: tier2HeadroomValues)
     ]
 }
-
