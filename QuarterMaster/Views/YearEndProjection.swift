@@ -130,7 +130,7 @@ struct YearEndProjectionView: View {
                 
                 whatIfHeaderRow(showComparison: showComparison)
                 
-                whatIfRow(label: "Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta, showComparison: showComparison)
+                whatIfRow(label: "YE Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta, showComparison: showComparison)
                 whatIfRow(label: "Net Taxable Income", current: comparison.current.netTaxableIncome, withConversion: comparison.withConversion.netTaxableIncome, delta: comparison.netTaxableIncomeDelta, showComparison: showComparison)
                 whatIfRow(label: "Fed Total Tax", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta, showComparison: showComparison)
                 whatIfRow(label: "Fed Tax Marginal Rate", current: comparison.current.fedMarginalRate, withConversion: comparison.withConversion.fedMarginalRate, delta: nil, formatStyle: .percent, showComparison: showComparison)
