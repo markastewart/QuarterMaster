@@ -101,7 +101,7 @@ struct YearEndProjectionView: View {
     
         // MARK: - Roth Conversion Entry
         // Compare "no conversion" vs. "convert $X" for the latest period. Purely a scratchpad - nothing here reads or writes real TaxPeriodInput/TaxEstimate data; if a conversion is actually made, it'll show up for real once reflected in a future import.
-
+    
         // Opens showing just Current column - pulled from a conversionAmount: 0 comparison, whose withConversion/delta simply mirror current in that case (RothConversionWhatIf.compare's early-return for a non-positive amount) - so there's nothing to compute twice. Once positive amount entered, same comparison call (with real amount) drives With Conversion and Delta columns, which whatIfHeaderRow/whatIfRow reveal via showComparison.
     @ViewBuilder
     private func rothConversionSection(latestInput: TaxPeriodInput, vm: IRMAAAnalysisVM) -> some View {
@@ -130,13 +130,24 @@ struct YearEndProjectionView: View {
                 
                 whatIfHeaderRow(showComparison: showComparison)
                 
+                    // "Total Tax Paid" is the full amount anticipated to be paid to that taxing authority for the already been paid via withholding/estimates (federalTaxPaid/stateTaxPaid) plus what's still owed for the remainder of the year.
+                let currentFedTotalPaid = comparison.current.federalTaxPaid
+                let withConversionFedTotalPaid = comparison.withConversion.federalTaxPaid
+                let currentStateTotalPaid = comparison.current.stateTaxPaid
+                let withConversionStateTotalPaid = comparison.withConversion.stateTaxPaid
+                
                 whatIfRow(label: "YE Fed AGI", current: comparison.current.fedAGI, withConversion: comparison.withConversion.fedAGI, delta: comparison.fedAGIDelta, showComparison: showComparison)
                 whatIfRow(label: "Net Taxable Income", current: comparison.current.netTaxableIncome, withConversion: comparison.withConversion.netTaxableIncome, delta: comparison.netTaxableIncomeDelta, showComparison: showComparison)
-                whatIfRow(label: "Fed Total Tax", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "Fed Total Tax (projected)", current: comparison.current.fedTotalTax, withConversion: comparison.withConversion.fedTotalTax, delta: comparison.fedTotalTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "Fed Tax Paid (projected)", current: currentFedTotalPaid, withConversion: withConversionFedTotalPaid, delta: withConversionFedTotalPaid - currentFedTotalPaid, showComparison: showComparison)
                 whatIfRow(label: "Fed Tax Marginal Rate", current: comparison.current.fedMarginalRate, withConversion: comparison.withConversion.fedMarginalRate, delta: nil, formatStyle: .percent, showComparison: showComparison)
                 whatIfRow(label: "Net Investment Tax", current: comparison.current.netInvestmentIncomeTax, withConversion: comparison.withConversion.netInvestmentIncomeTax, delta: comparison.netInvestmentIncomeTaxDelta, showComparison: showComparison)
-                whatIfRow(label: "State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta, showComparison: showComparison)
-                whatIfRow(label: "State Total Tax", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "YE State AGI", current: comparison.current.stateAGI, withConversion: comparison.withConversion.stateAGI, delta: comparison.stateAGIDelta, showComparison: showComparison)
+                whatIfRow(label: "State Total Tax (projected)", current: comparison.current.stateTotalTax, withConversion: comparison.withConversion.stateTotalTax, delta: comparison.stateTotalTaxDelta, showComparison: showComparison)
+                whatIfRow(label: "State Tax Paid (projected)", current: currentStateTotalPaid, withConversion: withConversionStateTotalPaid, delta: withConversionStateTotalPaid - currentStateTotalPaid, showComparison: showComparison)
+                
+                Divider().padding(.vertical, 2)
+                
                 whatIfRow(label: "Special Deduction", current: comparison.current.specialDeduction, withConversion: comparison.withConversion.specialDeduction, delta: comparison.specialDeductionDelta, showComparison: showComparison)
                 whatIfRow(label: "Projected MAGI", current: comparison.current.projectedMAGI, withConversion: comparison.withConversion.projectedMAGI, delta: comparison.projectedMAGIDelta, showComparison: showComparison)
                 whatIfRow(label: "Tier 0 Headroom", current: comparison.current.irmaaHeadroom, withConversion: comparison.withConversion.irmaaHeadroom, delta: comparison.irmaaHeadroomDelta, flagIfNegative: true, showComparison: showComparison)
@@ -182,16 +193,19 @@ struct YearEndProjectionView: View {
         }
     }
     
-        // delta is dollar-denominated (withConversion - current) and shown in its own column; pass nil to leave that column blank, which we do for the Marginal Rate row since a rate difference isn't a dollar delta. With Conversion/Delta only render when showComparison is true - flagIfNegative colors both Current and (when shown) With Conversion red, since Current alone can already be past a headroom threshold before any conversion is considered.
-    private func whatIfRow(label: String, current: Double, withConversion: Double, delta: Double?, formatStyle: RowFormatStyle = .currency, flagIfNegative: Bool = false, showComparison: Bool) -> some View {
+        // delta is dollar-denominated (withConversion - current) and shown in its own column; pass nil to leave that column blank, which we do for the Marginal Rate row since a rate difference isn't a dollar delta. With Conversion/Delta only render when showComparison is true - flagIfNegative colors both Current and (when shown) With Conversion red, since Current alone can already be past a headroom threshold before any conversion is considered. emphasized bolds the row - used for the Total Fed + State Tax summary row so it stands out from the individual Fed/State lines above it.
+    private func whatIfRow(label: String, current: Double, withConversion: Double, delta: Double?, formatStyle: RowFormatStyle = .currency, flagIfNegative: Bool = false, emphasized: Bool = false, showComparison: Bool) -> some View {
         HStack {
             Text(label)
+                .fontWeight(emphasized ? .semibold : .regular)
                 .frame(width: 160, alignment: .leading)
             whatIfValueText(current, formatStyle: formatStyle)
+                .fontWeight(emphasized ? .semibold : .regular)
                 .frame(width: 130, alignment: .trailing)
                 .foregroundColor(flagIfNegative && current < 0 ? .red : .primary)
             if showComparison {
                 whatIfValueText(withConversion, formatStyle: formatStyle)
+                    .fontWeight(emphasized ? .semibold : .regular)
                     .frame(width: 130, alignment: .trailing)
                     .foregroundColor(flagIfNegative && withConversion < 0 ? .red : .primary)
                 Group {
@@ -201,6 +215,7 @@ struct YearEndProjectionView: View {
                         Text("—")
                     }
                 }
+                .fontWeight(emphasized ? .semibold : .regular)
                 .frame(width: 130, alignment: .trailing)
                 .foregroundStyle(.secondary)
             }

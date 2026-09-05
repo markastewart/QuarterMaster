@@ -13,13 +13,15 @@ import Foundation
 
     // The conversion amount itself is never re-annualized: it's added directly to iraDistributions on a detached input copy before the budget-aware projection runs, since IRMAAProjector already treats iraDistributions as a direct actual-to-date figure with no further annualization - so a one-time conversion lands as a one-time amount, not inflated by however many months remain in the period.
 
-    // StateTaxCalculator takes federal AGI as an input rather than re-deriving it from raw fields, so feeding it the budget-aware scenarioFedEstimate automatically makes the state side budget-aware too - no changes needed there.
+    // StateTaxCalculator takes federal AGI as an input rather than re-deriving it from raw fields, so feeding it the budget-aware scenarioFedEstimate automatically makes the state side's income figures budget-aware too - no changes needed there. Withholding/estimates (fedCYWitholding/fedCYEstimates/stateCYWitholding/stateCYEstimates) are a separate case, since they aren't part of AGI/MAGI: buildScenario projects those itself (actual YTD + remaining budgeted months, same as IRMAAProjector does for income) directly on the detached scenarioInput copy before either calculator reads them.
 
 struct RothConversionWhatIf {
     
     struct Scenario {
         let federalTaxDue: Double
+        let federalTaxPaid: Double
         let stateTaxDue: Double
+        let stateTaxPaid: Double
         let projectedMAGI: Double
         let irmaaHeadroom: Double
         let tier1Headroom: Double
@@ -101,6 +103,19 @@ struct RothConversionWhatIf {
         let scenarioInput = taxPeriodInput.detachedCopy()
         scenarioInput.iraDistributions += conversionAmount
         
+        let factor = TaxPeriod.factor(for: scenarioInput.taxPeriodId)
+        
+            // fedCYWitholding/fedCYEstimates/stateCYWitholding/stateCYEstimates are cumulative YTD as of current period, same as every AGI-component field IRMAAProjector projects - so on a quarterly period they need same actual + remaining-budgeted-months treatment, or this what-if understates anticipated withholding/estimates and overstates what's still owed. Mirrors IRMAAProjector.projectMAGI's monthsElapsed/remainingMonths logic exactly. Mutated directly on scenarioInput (rather than computed as separate locals) so both manual federal tax-paid calc below and StateTaxCalculator.calculateStateEstimate further down automatically pick up projected totals with no changes needed in either calculator - same "mutate the detached copy" approach already used for iraDistributions above.
+        let monthsElapsed = Int((12.0 / factor).rounded())
+        let remainingMonths = monthlyBudget.filter { $0.month > monthsElapsed }
+        func remainingBudget(_ keyPath: KeyPath<MonthlyBudgetEntry, Double>) -> Double {
+            remainingMonths.reduce(0.0) { $0 + $1[keyPath: keyPath] }
+        }
+        scenarioInput.fedCYWitholding += remainingBudget(\.fedCYWitholding)
+        scenarioInput.fedCYEstimates += remainingBudget(\.fedCYEstimates)
+        scenarioInput.stateCYWitholding += remainingBudget(\.stateCYWitholding)
+        scenarioInput.stateCYEstimates += remainingBudget(\.stateCYEstimates)
+        
         let scenarioFedEstimate = TaxEstimate(taxEntity: TaxEntity.federal.rawValue, taxPeriodInput: scenarioInput)
         scenarioFedEstimate.taxableSocialSecurity = fedEstimate.taxableSocialSecurity
         scenarioFedEstimate.taxableCapitalGains = fedEstimate.taxableCapitalGains
@@ -121,18 +136,19 @@ struct RothConversionWhatIf {
         FederalTaxCalculator.netInvestmentIncomeTaxCalc(taxPeriodInput: scenarioInput, fedEstimate: scenarioFedEstimate)
         scenarioFedEstimate.totalTax = FederalTaxCalculator.annualTaxCalc(taxPeriodInput: scenarioInput, fedEstimate: scenarioFedEstimate) - SeasonalConstants.foreignTaxPaid + scenarioFedEstimate.netInvestmentIncomeTax
         scenarioFedEstimate.taxesPaid = scenarioInput.fedCYWitholding + scenarioInput.fedCYEstimates
-        
-        let factor = TaxPeriod.factor(for: scenarioInput.taxPeriodId)
         scenarioFedEstimate.taxEstimate = (scenarioFedEstimate.totalTax * (1 / factor)) - scenarioFedEstimate.taxesPaid
         
-            // State: takes federal AGI as an input rather than re-deriving it, so it's automatically budget-aware once fed scenarioFedEstimate above - called unmodified.
+            // State: takes federal AGI as an input rather than re-deriving it, so it's automatically budget-aware once fed scenarioFedEstimate above - called unmodified. stateCYWitholding/stateCYEstimates on scenarioInput were already projected above, so calculateStateEstimate's internal taxesPaid/taxEstimate calc picks up the same budget-aware totals with no changes needed there either.
         StateTaxCalculator.calculateStateEstimate(taxPeriodInput: scenarioInput, fedEstimate: scenarioFedEstimate)
+        
             // Not expected to be nil in practice (calculateStateEstimate always attaches one) - falls back to 0 rather than propagating an Optional through Scenario if it ever is.
         let scenarioStateEstimate = scenarioInput.taxEstimates.first(where: { $0.taxEntity == TaxEntity.state.rawValue })
         
         return Scenario(
             federalTaxDue: scenarioFedEstimate.taxEstimate,
+            federalTaxPaid: scenarioFedEstimate.taxesPaid,
             stateTaxDue: scenarioStateEstimate?.taxEstimate ?? 0,
+            stateTaxPaid: scenarioStateEstimate?.taxesPaid ?? 0,
             projectedMAGI: irmaaResult.projectedMAGI,
             irmaaHeadroom: irmaaResult.headroom,
             tier1Headroom: irmaaResult.tier1Headroom,
